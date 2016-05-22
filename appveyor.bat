@@ -4,10 +4,10 @@
 setlocal ENABLEDELAYEDEXPANSION
 cd %APPVEYOR_BUILD_FOLDER%
 
-if /i "%appveyor_repo_tag%"=="false" (
-  echo Skip this build.
-  exit 0
-)
+rem if /i "%appveyor_repo_tag%"=="false" (
+rem   echo Skip this build.
+rem   exit 0
+rem )
 
 if /I "%ARCH%"=="x64" (
   set BIT=64
@@ -88,7 +88,7 @@ exit 1
 @echo on
 :: Work around for Python 2.7.11
 reg copy HKLM\SOFTWARE\Python\PythonCore\2.7 HKLM\SOFTWARE\Python\PythonCore\2.7-32 /s /reg:32
-reg copy HKLM\SOFTWARE\Python\PythonCore\2.7 HKLM\SOFTWARE\Python\PythonCore\2.7-32 /s /reg:64
+rem reg copy HKLM\SOFTWARE\Python\PythonCore\2.7 HKLM\SOFTWARE\Python\PythonCore\2.7-32 /s /reg:64
 
 :: Get Vim source code
 git submodule update --init
