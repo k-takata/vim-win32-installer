@@ -5,8 +5,8 @@ setlocal ENABLEDELAYEDEXPANSION
 cd %APPVEYOR_BUILD_FOLDER%
 
 if /i "%appveyor_repo_tag%"=="false" (
-  echo Skip this build.
-  exit 0
+  rem echo Skip this build.
+  rem exit 0
 )
 
 if /I "%ARCH%"=="x64" (
