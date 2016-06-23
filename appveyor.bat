@@ -159,6 +159,7 @@ nmake -f Make_mvc2.mak ^
 	DYNAMIC_MZSCHEME=yes "MZSCHEME=%RACKET_DIR%" ^
 	WINVER=0x500 ^
 	|| exit 1
+goto skip_cui
 :: Build CUI version
 nmake -f Make_mvc2.mak ^
 	GUI=no OLE=no DIRECTX=no ^
@@ -176,6 +177,7 @@ nmake -f Make_mvc2.mak ^
 pushd po
 nmake -f Make_mvc.mak GETTEXT_PATH=C:\cygwin\bin VIMRUNTIME=..\..\runtime install-all || exit 1
 popd
+:skip_cui
 
 :check_executable
 :: ----------------------------------------------------------------------
