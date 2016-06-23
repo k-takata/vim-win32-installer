@@ -155,7 +155,7 @@ nmake -f Make_mvc2.mak ^
 	DYNAMIC_PYTHON3=yes PYTHON3=%PYTHON3_DIR% ^
 	DYNAMIC_LUA=yes LUA=%LUA_DIR% ^
 	DYNAMIC_TCL=yes TCL=%TCL_DIR% ^
-	DYNAMIC_MZSCHEME=yes "MZSCHEME=%RACKET_DIR%" ^
+	DYNAMIC_RUBY=yes RUBY=%RUBY_DIR% RUBY_MSVCRT_NAME=msvcrt ^
 	|| exit 1
 goto skip_cui
 :: Build CUI version
