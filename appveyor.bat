@@ -243,9 +243,11 @@ goto :eof
 :: ----------------------------------------------------------------------
 @echo on
 cd vim\src\testdir
-nmake -f Make_dos.mak VIMPROG=..\gvim || exit 1
-nmake -f Make_dos.mak clean
-nmake -f Make_dos.mak VIMPROG=..\vim || exit 1
+rem nmake -f Make_dos.mak VIMPROG=..\gvim || exit 1
+rem nmake -f Make_dos.mak clean
+rem nmake -f Make_dos.mak VIMPROG=..\vim || exit 1
+nmake -f Make_dos.mak VIMPROG=..\gvim test58.out
+nmake -f Make_dos.mak VIMPROG=..\gvim test_perl.res
 
 @echo off
 goto :eof
