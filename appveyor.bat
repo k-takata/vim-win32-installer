@@ -257,7 +257,7 @@ nmake -f Make_dos.mak VIMPROG=..\gvim test58.out test_perl.res
 
 if errorlevel 1 (
   for %%i in (C:\CrashDumps\*.dmp) do (
-    "C:\Program Files (x86)\Windows Kits\8.1\Debuggers\x64\cdb.exe" -z "%%i" -y "SRV*C:\Symbols*http://msdl.microsoft.com/download/symbols;%APPVEYOR_BUILD_FOLDER%\vim\src" -c "!analyze -v; ~*kp; q"
+    "C:\Program Files (x86)\Windows Kits\8.1\Debuggers\x64\cdb.exe" -z "%%i" -y "SRV*C:\Symbols*http://msdl.microsoft.com/download/symbols;%APPVEYOR_BUILD_FOLDER%\vim\src" -c "^!analyze -v; ~*kp; q"
     appveyor PushArtifact "%%i"
   )
   appveyor PushArtifact ..\gvim.exe
