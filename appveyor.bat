@@ -156,6 +156,7 @@ nmake -f Make_mvc2.mak ^
 	DYNAMIC_LUA=yes LUA=%LUA_DIR% ^
 	DYNAMIC_TCL=yes TCL=%TCL_DIR% ^
 	DYNAMIC_RUBY=yes RUBY=%RUBY_DIR% RUBY_MSVCRT_NAME=msvcrt ^
+	DYNAMIC_MZSCHEME=yes "MZSCHEME=%RACKET_DIR%" ^
 	|| exit 1
 goto skip_cui
 :: Build CUI version
