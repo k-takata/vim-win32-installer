@@ -3,7 +3,7 @@ version: "{build}"
 image: Visual Studio 2015
 
 # Build only on tags
-skip_non_tags: true
+#skip_non_tags: true
 
 environment:
   matrix:
