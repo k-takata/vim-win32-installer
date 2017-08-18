@@ -8,7 +8,7 @@ image: Visual Studio 2015
 environment:
   global:
     APPVEYOR_RDP_PASSWORD:
-      secure: h96UQISOHieQAgMlh2EZhjswSm+G3PtCIxRVfKERR58=
+      secure: LGP0m4K+pWvukcoKRRIERF7zrrsmaYtGjDKpEA1jEE0=
   matrix:
     - ARCH: x64
     - ARCH: x86
