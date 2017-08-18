@@ -208,9 +208,9 @@ goto :eof
 cd vim\src
 
 :: Build both 64- and 32-bit versions of gvimext.dll for the installer
-start /wait cmd /c "setenv /x64 && cd GvimExt && nmake clean all"
+start /wait cmd /c ""C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64 && cd GvimExt && nmake clean all"
 move GvimExt\gvimext.dll GvimExt\gvimext64.dll
-start /wait cmd /c "setenv /x86 && cd GvimExt && nmake clean all"
+start /wait cmd /c ""C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86 && cd GvimExt && nmake clean all"
 :: Create zip packages
 7z a ..\..\gvim_%APPVEYOR_REPO_TAG_NAME:v=%_%ARCH%_pdb.zip *.pdb
 copy /Y ..\README.txt ..\runtime
