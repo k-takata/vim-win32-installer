@@ -144,7 +144,6 @@ set WinSdk71=%ProgramFiles(x86)%\Microsoft SDKs\Windows\v7.1A
 set SDK_INCLUDE_DIR=%WinSdk71%\Include
 set INCLUDE=%WinSdk71%\Include;%INCLUDE%
 set LIB=%WinSdk71%\Lib;%LIB%
-set PATH=%WinSdk71%\Bin;%PATH%
 set CL=/D_USING_V110_SDK71_
 
 @echo off
