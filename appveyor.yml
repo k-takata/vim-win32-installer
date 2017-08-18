@@ -6,7 +6,7 @@ version: "{build}"
 environment:
   global:
     APPVEYOR_RDP_PASSWORD:
-      secure: CdG5u3F+s7u1uIEpbbb3KP8zoUmvvAsKg5LreYWs/JM=
+      secure: h96UQISOHieQAgMlh2EZhjswSm+G3PtCIxRVfKERR58=
   matrix:
     - ARCH: x64
     - ARCH: x86
