@@ -4,6 +4,9 @@ version: "{build}"
 #skip_non_tags: true
 
 environment:
+  global:
+    APPVEYOR_RDP_PASSWORD:
+      secure: CdG5u3F+s7u1uIEpbbb3KP8zoUmvvAsKg5LreYWs/JM=
   matrix:
     - ARCH: x64
     - ARCH: x86
@@ -13,6 +16,9 @@ matrix:
 
 # Shallow clone cannot be used when using git-submodule
 shallow_clone: false
+
+init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 build:
   verbosity: minimal
