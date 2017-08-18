@@ -53,8 +53,8 @@ set RUBY_DIR=!RUBY%BIT%_DIR!
 :: Tcl
 set TCL_VER_LONG=8.6
 set TCL_VER=%TCL_VER_LONG:.=%
-set TCL32_URL=http://downloads.activestate.com/ActiveTcl/releases/8.6.4.1/ActiveTcl8.6.4.1.299124-win32-ix86-threaded.exe
-set TCL64_URL=http://downloads.activestate.com/ActiveTcl/releases/8.6.4.1/ActiveTcl8.6.4.1.299124-win32-x86_64-threaded.exe
+set TCL32_URL=http://downloads.activestate.com/ActiveTcl/releases/8.6.6.8607/ActiveTcl-8.6.6.8607-MSWin32-x86-403667.exe
+set TCL64_URL=http://downloads.activestate.com/ActiveTcl/releases/8.6.6.8606/ActiveTcl-8.6.6.8606-MSWin32-x64-401995.exe
 set TCL_URL=!TCL%BIT%_URL!
 set TCL_DIR=C:\Tcl
 :: Gettext
@@ -106,7 +106,9 @@ for /d %%i in (c:\ActivePerlTemp\*) do move %%i %PERL_DIR%
 
 :: Tcl
 call :downloadfile %TCL_URL% downloads\tcl.exe
-start /wait downloads\tcl.exe --directory %TCL_DIR%
+mkdir c:\ActiveTclTemp
+start /wait downloads\tcl.exe /extract:c:\ActiveTclTemp /exenoui /exenoupdates /quiet /norestart
+for /d %%i in (c:\ActiveTclTemp\*) do move %%i %TCL_DIR%
 
 :: Ruby
 :: RubyInstaller is built by MinGW, so we cannot use header files from it.
