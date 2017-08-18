@@ -138,6 +138,15 @@ path
 
 :: Install additional packages for Racket
 raco pkg install --auto r5rs-lib
+
+:: Setting for targeting Windows XP
+set WinSdk71=%ProgramFiles(x86)%\Microsoft SDKs\Windows\v7.1A
+set SDK_INCLUDE_DIR=%WinSdk71%\Include
+set INCLUDE=%WinSdk71%\Include;%INCLUDE%
+set LIB=%WinSdk71%\Lib;%LIB%
+set PATH=%WinSdk71%\Bin;%PATH%
+set CL=/D_USING_V110_SDK71_
+
 @echo off
 goto :eof
 
@@ -160,7 +169,7 @@ nmake -f Make_mvc2.mak ^
 	DYNAMIC_TCL=yes TCL=%TCL_DIR% ^
 	DYNAMIC_RUBY=yes RUBY=%RUBY_DIR% RUBY_MSVCRT_NAME=msvcrt ^
 	DYNAMIC_MZSCHEME=yes "MZSCHEME=%RACKET_DIR%" ^
-	TERMINAL=yes WINVER=0x500 ^
+	TERMINAL=yes SUBSYSTEM_VER=5.01 ^
 	|| exit 1
 :: Build CUI version
 nmake -f Make_mvc2.mak ^
@@ -173,7 +182,7 @@ nmake -f Make_mvc2.mak ^
 	DYNAMIC_TCL=yes TCL=%TCL_DIR% ^
 	DYNAMIC_RUBY=yes RUBY=%RUBY_DIR% RUBY_MSVCRT_NAME=msvcrt ^
 	DYNAMIC_MZSCHEME=yes "MZSCHEME=%RACKET_DIR%" ^
-	TERMINAL=yes WINVER=0x500 ^
+	TERMINAL=yes SUBSYSTEM_VER=5.01 ^
 	|| exit 1
 :: Build translations
 pushd po
