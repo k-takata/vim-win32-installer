@@ -147,11 +147,6 @@ set LIB=%WinSdk71%\Lib;%LIB%
 set PATH=%WinSdk71%\Bin;%PATH%
 set CL=/D_USING_V110_SDK71_
 
-where cl
-where link
-cl
-link
-
 @echo off
 goto :eof
 
