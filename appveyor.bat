@@ -68,7 +68,7 @@ set UPX_URL=https://github.com/upx/upx/releases/download/v3.94/upx394w.zip
 :: ----------------------------------------------------------------------
 
 :: Update PATH
-path %PYTHON_DIR%;%PYTHON3_DIR%;%PERL_DIR%\bin;%path%;%LUA_DIR%;%TCL_DIR%\bin;%RUBY_DIR%\bin;%RACKET_DIR%;%RACKET_DIR%\lib
+path %PYTHON_DIR%;%PYTHON3_DIR%;%PERL_DIR%\bin;%path%;%LUA_DIR%;%TCL_DIR%\bin;%RUBY_DIR%\bin;%RUBY_DIR%\bin\ruby_builtin_dlls;%RACKET_DIR%;%RACKET_DIR%\lib
 
 if /I "%1"=="" (
   set target=build
