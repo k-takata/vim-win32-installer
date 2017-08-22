@@ -3,9 +3,11 @@ version: "{build}"
 image: Visual Studio 2015
 
 # Build only on tags
-skip_non_tags: true
+#skip_non_tags: true
 
 environment:
+  global:
+    APPVEYOR_REPO_TAG_NAME: v8.x.xxxx
   matrix:
     - ARCH: x64
     - ARCH: x86
