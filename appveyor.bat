@@ -165,7 +165,11 @@ cd vim\src
 :: Setting for targeting Windows XP
 set WinSdk71=%ProgramFiles(x86)%\Microsoft SDKs\Windows\v7.1A
 set INCLUDE=%WinSdk71%\Include;%INCLUDE%
-set LIB=%WinSdk71%\Lib;%LIB%
+if /i "%ARCH%"=="x64" (
+	set "LIB=%WinSdk71%\Lib\x64;%LIB%"
+) else (
+	set "LIB=%WinSdk71%\Lib;%LIB%"
+)
 set CL=/D_USING_V110_SDK71_
 
 where tcl86.dll
