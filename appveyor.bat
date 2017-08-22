@@ -168,6 +168,10 @@ set INCLUDE=%WinSdk71%\Include;%INCLUDE%
 set LIB=%WinSdk71%\Lib;%LIB%
 set CL=/D_USING_V110_SDK71_
 
+where tcl86.dll
+where msvcrt-ruby240.dll
+where x64-msvcrt-ruby240.dll
+
 :: Remove progress bar from the build log
 sed -e "s/\$(LINKARGS2)/\$(LINKARGS2) | sed -e 's#.*\\\\r.*##'/" Make_mvc.mak > Make_mvc2.mak
 :: Build GUI version
