@@ -208,6 +208,11 @@ popd
 
 :check_executable
 :: ----------------------------------------------------------------------
+dir %TCL_DIR%\bin
+where tcl86t.dll
+where tcl86.dll
+c:\msys64\usr\bin\file "%TCL_DIR%\bin\tcl86t.dll"
+
 start /wait .\gvim -silent -register
 start /wait .\gvim -u NONE -c "redir @a | ver | 0put a | wq!" ver.txt
 type ver.txt
