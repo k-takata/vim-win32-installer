@@ -61,12 +61,14 @@ set TCL_DIR=C:\Tcl
 set GETTEXT32_URL=https://github.com/mlocati/gettext-iconv-windows/releases/download/v0.19.8.1-v1.14/gettext0.19.8.1-iconv1.14-shared-32.zip
 set GETTEXT64_URL=https://github.com/mlocati/gettext-iconv-windows/releases/download/v0.19.8.1-v1.14/gettext0.19.8.1-iconv1.14-shared-64.zip
 set GETTEXT_URL=!GETTEXT%BIT%_URL!
+:: winpty
+set WINPTY_URL=https://github.com/rprichard/winpty/releases/download/0.4.3/winpty-0.4.3-msvc2015.zip
 :: UPX
-set UPX_URL=http://upx.sourceforge.net/download/upx391w.zip
+set UPX_URL=https://github.com/upx/upx/releases/download/v3.94/upx394w.zip
 :: ----------------------------------------------------------------------
 
 :: Update PATH
-path %PYTHON_DIR%;%PYTHON3_DIR%;%PERL_DIR%\bin;%path%;%LUA_DIR%;%TCL_DIR%\bin;%RUBY_DIR%\bin;%RACKET_DIR%;%RACKET_DIR%\lib
+path %PYTHON_DIR%;%PYTHON3_DIR%;%PERL_DIR%\bin;%path%;%LUA_DIR%;%TCL_DIR%\bin;%RUBY_DIR%\bin;%RUBY_DIR%\bin\ruby_builtin_dlls;%RACKET_DIR%;%RACKET_DIR%\lib
 
 if /I "%1"=="" (
   set target=build
@@ -129,6 +131,17 @@ start /wait downloads\racket.exe /S
 call :downloadfile %GETTEXT_URL% downloads\gettext.zip
 7z e -y downloads\gettext.zip -oc:\gettext
 
+:: Install winpty
+call :downloadfile %WINPTY_URL% downloads\winpty.zip
+7z x -y downloads\winpty.zip -oc:\winpty
+if /i "%ARCH%"=="x64" (
+	copy /Y c:\winpty\x64_xp\bin\winpty.dll        vim\src\winpty64.dll
+	copy /Y c:\winpty\x64_xp\bin\winpty-agent.exe  vim\src\
+) else (
+	copy /Y c:\winpty\ia32_xp\bin\winpty.dll       vim\src\winpty32.dll
+	copy /Y c:\winpty\ia32_xp\bin\winpty-agent.exe vim\src\
+)
+
 :: Install UPX
 call :downloadfile %UPX_URL% downloads\upx.zip
 7z e downloads\upx.zip *\upx.exe -ovim\nsis > nul || exit 1
@@ -139,12 +152,6 @@ path
 :: Install additional packages for Racket
 raco pkg install --auto r5rs-lib
 
-:: Setting for targeting Windows XP
-set WinSdk71=%ProgramFiles(x86)%\Microsoft SDKs\Windows\v7.1A
-set INCLUDE=%WinSdk71%\Include;%INCLUDE%
-set LIB=%WinSdk71%\Lib;%LIB%
-set CL=/D_USING_V110_SDK71_
-
 @echo off
 goto :eof
 
@@ -154,6 +161,17 @@ goto :eof
 :: ----------------------------------------------------------------------
 @echo on
 cd vim\src
+
+:: Setting for targeting Windows XP
+set WinSdk71=%ProgramFiles(x86)%\Microsoft SDKs\Windows\v7.1A
+set INCLUDE=%WinSdk71%\Include;%INCLUDE%
+if /i "%ARCH%"=="x64" (
+	set "LIB=%WinSdk71%\Lib\x64;%LIB%"
+) else (
+	set "LIB=%WinSdk71%\Lib;%LIB%"
+)
+set CL=/D_USING_V110_SDK71_
+
 :: Remove progress bar from the build log
 sed -e "s/\$(LINKARGS2)/\$(LINKARGS2) | sed -e 's#.*\\\\r.*##'/" Make_mvc.mak > Make_mvc2.mak
 :: Build GUI version
@@ -226,6 +244,8 @@ copy /Y ..\..\diff.exe ..\runtime\
 copy /Y c:\gettext\libiconv*.dll ..\runtime\
 copy /Y c:\gettext\libintl-8.dll ..\runtime\
 if exist c:\gettext\libgcc_s_sjlj-1.dll copy /Y c:\gettext\libgcc_s_sjlj-1.dll ..\runtime\
+copy /Y winpty* ..\runtime\
+copy /Y winpty* ..\..\
 set dir=vim%APPVEYOR_REPO_TAG_NAME:~1,1%%APPVEYOR_REPO_TAG_NAME:~3,1%
 mkdir ..\vim\%dir%
 xcopy ..\runtime ..\vim\%dir% /Y /E /V /I /H /R /Q
