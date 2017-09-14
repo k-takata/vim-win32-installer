@@ -150,6 +150,9 @@ call :downloadfile %UPX_URL% downloads\upx.zip
 :: Show PATH for debugging
 path
 
+where tclsh
+echo puts [info patchlevel] | tclsh
+
 :: Install additional packages for Racket
 raco pkg install --auto r5rs-lib
 
