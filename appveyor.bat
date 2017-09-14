@@ -211,6 +211,7 @@ popd
 dir %TCL_DIR%\bin
 where tcl86t.dll
 where tcl86.dll
+where $LIB:tclstub86.lib
 c:\msys64\usr\bin\file "%TCL_DIR%\bin\tcl86t.dll"
 
 start /wait .\gvim -silent -register
