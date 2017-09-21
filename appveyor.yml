@@ -7,8 +7,8 @@ skip_non_tags: true
 
 environment:
   matrix:
-    - ARCH: x64
     - ARCH: x86
+    - ARCH: x64
 
 matrix:
   fast_finish: true
