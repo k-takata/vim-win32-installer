@@ -1,0 +1,230 @@
+# HG changeset patch
+# Parent  3dff6cc592ab65c07dad84c1ca23badfe7a50651
+
+diff --git a/src/GvimExt/Makefile b/src/GvimExt/Makefile
+--- a/src/GvimExt/Makefile
++++ b/src/GvimExt/Makefile
+@@ -51,14 +51,17 @@ olelibsdll = ole32.lib uuid.lib oleaut32
+ # include CPUARG
+ cflags = $(cflags) $(CPUARG)
+ 
++SUBSYSTEM = console
++!if "$(SUBSYSTEM_VER)" != ""
++SUBSYSTEM = $(SUBSYSTEM),$(SUBSYSTEM_VER)
++!endif
++
+ all: gvimext.dll
+ 
+ gvimext.dll:    gvimext.obj	\
+ 		gvimext.res
+-# $(implib) /NOLOGO -machine:$(CPU) -def:gvimext.def $** -out:gvimext.lib
+-# $(link) $(dlllflags) -base:0x1C000000 -out:$*.dll $** $(olelibsdll) shell32.lib gvimext.lib comctl32.lib gvimext.exp
+-  $(link) $(lflags) -dll -def:gvimext.def -base:0x1C000000 -out:$*.dll $** $(olelibsdll) shell32.lib comctl32.lib
+-  if exist $*.dll.manifest mt -nologo -manifest $*.dll.manifest -outputresource:$*.dll;2
++	$(link) $(lflags) -dll -def:gvimext.def -base:0x1C000000 -out:$*.dll $** $(olelibsdll) shell32.lib comctl32.lib -subsystem:$(SUBSYSTEM)
++	if exist $*.dll.manifest mt -nologo -manifest $*.dll.manifest -outputresource:$*.dll;2
+ 
+ gvimext.obj: gvimext.h
+ 
+diff --git a/src/INSTALLpc.txt b/src/INSTALLpc.txt
+--- a/src/INSTALLpc.txt
++++ b/src/INSTALLpc.txt
+@@ -127,16 +127,25 @@ follows:
+     LINK ... /subsystem:console,5.01
+ 
+ Make_mvc.mak now supports a macro SUBSYSTEM_VER to pass the Windows version.
+-Use lines like follows to target Windows XP (assuming using Visual C++ 2012
+-under 64-bit Windows):
++Use lines like follows to target Windows XP x86 (assuming using Visual C++
++2012 under 64-bit Windows):
+     set WinSdk71=%ProgramFiles(x86)%\Microsoft SDKs\Windows\v7.1A
+-    set SDK_INCLUDE_DIR=%WinSdk71%\Include
+     set INCLUDE=%WinSdk71%\Include;%INCLUDE%
+     set LIB=%WinSdk71%\Lib;%LIB%
+-    set PATH=%WinSdk71%\Bin;%PATH%
+     set CL=/D_USING_V110_SDK71_
+     nmake -f Make_mvc.mak ... WINVER=0x0501 SUBSYSTEM_VER=5.01
+ 
++To target Windows XP x64 instead of x86, you need to change the settings of
++LIB and SUBSYSTEM_VER:
++    ...
++    set LIB=%WinSdk71%\Lib\x64;%LIB%
++    ...
++    nmake -f Make_mvc.mak ... WINVER=0x0501 SUBSYSTEM_VER=5.02
++
++If you use Visual C++ 2015 (either Express or Community Edition), executing
++msvc2015.bat will set them automatically.  If you want to build for x64,
++execute it with "x86_amd64" option.
++
+ The following Visual C++ team blog can serve as a reference page:
+     http://blogs.msdn.com/b/vcblog/archive/2012/10/08/windows-xp-targeting-with-c-in-visual-studio-2012.aspx
+ 
+@@ -482,7 +491,7 @@ You need to set the following variables:
+                        E.g. C:\Program Files (x86)\Racket
+     DYNAMIC_MZSCHEME:  Whether dynamic linking is used. Usually, set to yes.
+     MZSCHEME_VER:      Racket DLL version which is used for the file name.
+-                       E.g. 3m_9z0ds0 for Racket 6.3.
++                       See below for a list of MZSCHEME_VER.
+                        The DLL can be found under the lib directory. E.g.
+                        C:\Program Files (x86)\Racket\lib\libracket3m_XXXXXX.dll
+     MZSCHEME_COLLECTS: (Optional) Path of the collects directory used at
+@@ -490,6 +499,16 @@ You need to set the following variables:
+                        User can override this with the PLTCOLLECTS environment
+                        variable.
+ 
++List of MZSCHEME_VER (incomplete):
++
++    Racket ver. | MZSCHEME_VER
++    ==========================
++    6.3         | 3m_9z0ds0
++    6.6         | 3m_a0solc
++    6.8         | 3m_a1zjsw
++    6.10        | 3m_a36fs8
++
++
+ E.g. When using MSVC (as one line):
+ 
+     nmake -f Make_mvc.mak
+diff --git a/src/Make_mvc.mak b/src/Make_mvc.mak
+--- a/src/Make_mvc.mak
++++ b/src/Make_mvc.mak
+@@ -587,7 +587,7 @@ CPUARG = /arch:AVX2
+ ! endif
+ !endif
+ 
+-# Pass CPUARG to GVimExt, to avoid using version-dependent defaults
++# Pass CPUARG to GvimExt, to avoid using version-dependent defaults
+ MAKEFLAGS_GVIMEXT = $(MAKEFLAGS_GVIMEXT) CPUARG="$(CPUARG)"
+ 
+ 
+@@ -800,9 +800,14 @@ SUBSYSTEM = console
+ CUI_INCL = iscygpty.h
+ CUI_OBJ = $(OUTDIR)\iscygpty.obj
+ !endif
++SUBSYSTEM_TOOLS = console
+ 
+ !if "$(SUBSYSTEM_VER)" != ""
+ SUBSYSTEM = $(SUBSYSTEM),$(SUBSYSTEM_VER)
++SUBSYSTEM_TOOLS = $(SUBSYSTEM_TOOLS),$(SUBSYSTEM_VER)
++# Pass SUBSYSTEM_VER to GvimExt and other tools
++MAKEFLAGS_GVIMEXT = $(MAKEFLAGS_GVIMEXT) SUBSYSTEM_VER=$(SUBSYSTEM_VER)
++MAKEFLAGS_TOOLS = $(MAKEFLAGS_TOOLS) SUBSYSTEM_VER=$(SUBSYSTEM_VER)
+ !endif
+ 
+ !if "$(GUI)" == "yes" && "$(DIRECTX)" == "yes"
+@@ -1198,24 +1203,26 @@ all:	$(VIM).exe \
+ 
+ install.exe: dosinst.c
+ 	$(CC) /nologo -DNDEBUG -DWIN32 dosinst.c kernel32.lib shell32.lib \
+-		user32.lib ole32.lib advapi32.lib uuid.lib
++		user32.lib ole32.lib advapi32.lib uuid.lib \
++		-link -subsystem:$(SUBSYSTEM_TOOLS)
+ 	- if exist install.exe del install.exe
+ 	ren dosinst.exe install.exe
+ 
+ uninstal.exe: uninstal.c
+-	$(CC) /nologo -DNDEBUG -DWIN32 uninstal.c shell32.lib advapi32.lib
++	$(CC) /nologo -DNDEBUG -DWIN32 uninstal.c shell32.lib advapi32.lib \
++		-link -subsystem:$(SUBSYSTEM_TOOLS)
+ 
+ vimrun.exe: vimrun.c
+-	$(CC) /nologo -DNDEBUG vimrun.c
++	$(CC) /nologo -DNDEBUG vimrun.c -link -subsystem:$(SUBSYSTEM_TOOLS)
+ 
+ xxd/xxd.exe: xxd/xxd.c
+ 	cd xxd
+-	$(MAKE) /NOLOGO -f Make_mvc.mak
++	$(MAKE) /NOLOGO -f Make_mvc.mak $(MAKEFLAGS_TOOLS)
+ 	cd ..
+ 
+ tee/tee.exe: tee/tee.c
+ 	cd tee
+-	$(MAKE) /NOLOGO -f Make_mvc.mak
++	$(MAKE) /NOLOGO -f Make_mvc.mak $(MAKEFLAGS_TOOLS)
+ 	cd ..
+ 
+ GvimExt/gvimext.dll: GvimExt/gvimext.cpp GvimExt/gvimext.rc GvimExt/gvimext.h
+diff --git a/src/msvc2015.bat b/src/msvc2015.bat
+new file mode 100644
+--- /dev/null
++++ b/src/msvc2015.bat
+@@ -0,0 +1,33 @@
++@echo off
++rem To be used on MS-Windows for Visual C++ 2015 (either Express or Community)
++rem See INSTALLpc.txt for information.
++rem
++rem Usage:
++rem   For x86 builds run this without options:
++rem     msvc2015
++rem   For x64 builds run this with "x86_amd64" option:
++rem     msvc2015 x86_amd64
++@echo on
++
++call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" %*
++
++rem Use Windows SDK 7.1A for targeting Windows XP.
++if "%ProgramFiles(x86)%"=="" (
++	set "WinSdk71=%ProgramFiles%\Microsoft SDKs\Windows\v7.1A"
++) else (
++	set "WinSdk71=%ProgramFiles(x86)%\Microsoft SDKs\Windows\v7.1A"
++)
++if not exist "%WinSdk71%" (
++	echo Windows SDK 7.1A is not found.  Targeting Windows Vista and later.
++	goto :eof
++)
++
++set INCLUDE=%WinSdk71%\Include;%INCLUDE%
++if "%Platform%"=="x64" (
++	set "LIB=%WinSdk71%\Lib\x64;%LIB%"
++	set SUBSYSTEM_VER=5.02
++) else (
++	set "LIB=%WinSdk71%\Lib;%LIB%"
++	set SUBSYSTEM_VER=5.01
++)
++set CL=/D_USING_V110_SDK71_
+diff --git a/src/tee/Make_mvc.mak b/src/tee/Make_mvc.mak
+--- a/src/tee/Make_mvc.mak
++++ b/src/tee/Make_mvc.mak
+@@ -1,10 +1,15 @@
+ # A very (if not the most) simplistic Makefile for MSVC
+ 
++SUBSYSTEM = console
++!if "$(SUBSYSTEM_VER)" != ""
++SUBSYSTEM = $(SUBSYSTEM),$(SUBSYSTEM_VER)
++!endif
++
+ CC=cl
+ CFLAGS=/O2 /nologo
+ 
+ tee.exe: tee.obj
+-	$(CC) $(CFLAGS) /Fo$@ $**
++	$(CC) $(CFLAGS) /Fo$@ $** /link /subsystem:$(SUBSYSTEM)
+ 
+ tee.obj: tee.c
+ 	$(CC) $(CFLAGS) /c $**
+diff --git a/src/xxd/Make_mvc.mak b/src/xxd/Make_mvc.mak
+--- a/src/xxd/Make_mvc.mak
++++ b/src/xxd/Make_mvc.mak
+@@ -1,14 +1,19 @@
+ # The most simplistic Makefile for Win32 using Microsoft Visual C++
+ # (NT and Windows 95)
+ 
++SUBSYSTEM = console
++!if "$(SUBSYSTEM_VER)" != ""
++SUBSYSTEM = $(SUBSYSTEM),$(SUBSYSTEM_VER)
++!endif
++
+ xxd: xxd.exe
+ 
+ xxd.exe: xxd.c
+-     cl /nologo -DWIN32 xxd.c
++	cl /nologo -DWIN32 xxd.c -link -subsystem:$(SUBSYSTEM)
+ 
+ # This was for an older compiler
+ #    cl /nologo -DWIN32 xxd.c /link setargv.obj
+ 
+ clean:
+-     - if exist xxd.obj del xxd.obj
+-     - if exist xxd.exe del xxd.exe
++	- if exist xxd.obj del xxd.obj
++	- if exist xxd.exe del xxd.exe
