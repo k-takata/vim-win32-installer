@@ -1,0 +1,1146 @@
+# HG changeset patch
+# Parent  13fe4467499c4e995dc42532a36c8cb607ef2f1a
+
+diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
+--- a/nsis/gvim.nsi
++++ b/nsis/gvim.nsi
+@@ -20,6 +20,12 @@
+   !define VIMTOOLS ..\..
+ !endif
+ 
++# Location of gettext.
++# It must contain two directories: gettext32 and gettext64.
++!ifndef GETTEXT
++  !define GETTEXT ".."
++!endif
++
+ # Comment the next line if you don't have UPX.
+ # Get it at http://upx.sourceforge.net
+ !define HAVE_UPX
+@@ -328,24 +334,59 @@ Section "Add an Edit-with-Vim context me
+ 	SetOutPath $0
+ 	ClearErrors
+ 	SetOverwrite try
++
+ 	${If} ${RunningX64}
+-	  File /oname=gvimext.dll ${VIMSRC}\GvimExt\gvimext64.dll
+-	${Else}
+-	  File /oname=gvimext.dll ${VIMSRC}\GvimExt\gvimext.dll
++	  # Install 64-bit gvimext.dll into the GvimExt64 directory.
++	  SetOutPath $0\GvimExt64
++	  ClearErrors
++	  File ${VIMSRC}\GvimExt64\gvimext.dll
++	  File ${GETTEXT}\gettext64\libintl-8.dll
++	  File ${GETTEXT}\gettext64\libiconv-2.dll
++
++	  IfErrors 0 GvimExt64Done
++
++	  # Can't copy gvimext.dll, create it under another name and rename it
++	  # on next reboot.
++	  GetTempFileName $3 $0\GvimExt64
++	  File /oname=$3 ${VIMSRC}\GvimExt64\gvimext.dll
++	  Rename /REBOOTOK $3 $0\GvimExt64\gvimext.dll
++	  GetTempFileName $3 $0\GvimExt64
++	  File /oname=$3 ${GETTEXT}\gettext64\libintl-8.dll
++	  Rename /REBOOTOK $3 $0\GvimExt64\libintl-8.dll
++	  GetTempFileName $3 $0\GvimExt64
++	  File /oname=$3 ${GETTEXT}\gettext64\libiconv-2.dll
++	  Rename /REBOOTOK $3 $0\GvimExt64\libiconv-2.dll
+ 	${EndIf}
+-	IfErrors 0 GvimExtDone
++
++	GvimExt64Done:
++
++	# Install 32-bit gvimext.dll into the GvimExt32 directory.
++	SetOutPath $0\GvimExt32
++	ClearErrors
++
++	File ${VIMSRC}\GvimExt32\gvimext.dll
++	File ${GETTEXT}\gettext32\libintl-8.dll
++	File ${GETTEXT}\gettext32\libiconv-2.dll
++	File ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
++
++	IfErrors 0 GvimExt32Done
+ 
+ 	# Can't copy gvimext.dll, create it under another name and rename it on
+ 	# next reboot.
+-	GetTempFileName $3 $0
+-	${If} ${RunningX64}
+-	  File /oname=$3 ${VIMSRC}\GvimExt\gvimext64.dll
+-	${Else}
+-	  File /oname=$3 ${VIMSRC}\GvimExt\gvimext.dll
+-	${EndIf}
+-	Rename /REBOOTOK $3 $0\gvimext.dll
++	GetTempFileName $3 $0\GvimExt32
++	File /oname=$3 ${VIMSRC}\GvimExt32\gvimext.dll
++	Rename /REBOOTOK $3 $0\GvimExt32\gvimext.dll
++	GetTempFileName $3 $0\GvimExt32
++	File /oname=$3 ${GETTEXT}\gettext32\libintl-8.dll
++	Rename /REBOOTOK $3 $0\GvimExt32\libintl-8.dll
++	GetTempFileName $3 $0\GvimExt32
++	File /oname=$3 ${GETTEXT}\gettext32\libiconv-2.dll
++	Rename /REBOOTOK $3 $0\GvimExt32\libiconv-2.dll
++	GetTempFileName $3 $0\GvimExt32
++	File /oname=$3 ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
++	Rename /REBOOTOK $3 $0\GvimExt32\libgcc_s_sjlj-1.dll
+ 
+-	GvimExtDone:
++	GvimExt32Done:
+ 	SetOverwrite lastused
+ 
+ 	# We don't have a separate entry for the "Open With..." menu, assume
+diff --git a/src/GvimExt/gvimext.cpp b/src/GvimExt/gvimext.cpp
+--- a/src/GvimExt/gvimext.cpp
++++ b/src/GvimExt/gvimext.cpp
+@@ -38,7 +38,7 @@ STGMEDIUM medium;
+ HRESULT hres = 0;
+ UINT cbFiles = 0;
+ 
+-/* The buffers size used to be MAX_PATH (256 bytes), but that's not always
++/* The buffers size used to be MAX_PATH (260 bytes), but that's not always
+  * enough */
+ #define BUFSIZE 1100
+ 
+@@ -203,7 +203,7 @@ dyn_libintl_init(char *dir)
+     if (hLibintlDLL)
+ 	return 1;
+ 
+-    // Load gettext library from the Vim runtime directory.
++    // Load gettext library from $VIMRUNTIME\GvimExt{64,32} directory.
+     // Add the directory to $PATH temporarily.
+     len = GetEnvironmentVariableW(L"PATH", NULL, 0);
+     len2 = MAX_PATH + 1 + len;
+@@ -212,7 +212,11 @@ dyn_libintl_init(char *dir)
+     if (buf != NULL && buf2 != NULL)
+     {
+ 	GetEnvironmentVariableW(L"PATH", buf, len);
+-	_snwprintf(buf2, len2, L"%S;%s", dir, buf);
++#ifdef _WIN64
++	_snwprintf(buf2, len2, L"%S\\GvimExt64;%s", dir, buf);
++#else
++	_snwprintf(buf2, len2, L"%S\\GvimExt32;%s", dir, buf);
++#endif
+ 	SetEnvironmentVariableW(L"PATH", buf2);
+ 	hLibintlDLL = LoadLibrary(GETTEXT_DLL);
+ #ifdef GETTEXT_DLL_ALT
+@@ -883,37 +887,7 @@ BOOL CShellExt::LoadMenuIcon()
+ 	return TRUE;
+ }
+ 
+-#ifdef WIN32
+-// This symbol is not defined in older versions of the SDK or Visual C++.
+-
+-#ifndef VER_PLATFORM_WIN32_WINDOWS
+-# define VER_PLATFORM_WIN32_WINDOWS 1
+-#endif
+-
+-static DWORD g_PlatformId;
+-
+-//
+-// Set g_PlatformId to VER_PLATFORM_WIN32_NT (NT) or
+-// VER_PLATFORM_WIN32_WINDOWS (Win95).
+-//
+-    static void
+-PlatformId(void)
+-{
+-    static int done = FALSE;
+-
+-    if (!done)
+-    {
+-	OSVERSIONINFO ovi;
+-
+-	ovi.dwOSVersionInfoSize = sizeof(ovi);
+-	GetVersionEx(&ovi);
+-
+-	g_PlatformId = ovi.dwPlatformId;
+-	done = TRUE;
+-    }
+-}
+-
+-# ifndef __BORLANDC__
++#ifndef __BORLANDC__
+     static char *
+ searchpath(char *name)
+ {
+@@ -922,28 +896,17 @@ searchpath(char *name)
+ 
+     // There appears to be a bug in FindExecutableA() on Windows NT.
+     // Use FindExecutableW() instead...
+-    PlatformId();
+-    if (g_PlatformId == VER_PLATFORM_WIN32_NT)
++    MultiByteToWideChar(CP_ACP, 0, (LPCSTR)name, -1,
++	    (LPWSTR)widename, BUFSIZE);
++    if (FindExecutableW((LPCWSTR)widename, (LPCWSTR)"",
++		(LPWSTR)location) > (HINSTANCE)32)
+     {
+-	MultiByteToWideChar(CP_ACP, 0, (LPCTSTR)name, -1,
+-		(LPWSTR)widename, BUFSIZE);
+-	if (FindExecutableW((LPCWSTR)widename, (LPCWSTR)"",
+-		    (LPWSTR)location) > (HINSTANCE)32)
+-	{
+-	    WideCharToMultiByte(CP_ACP, 0, (LPWSTR)location, -1,
+-		    (LPSTR)widename, 2 * BUFSIZE, NULL, NULL);
+-	    return widename;
+-	}
+-    }
+-    else
+-    {
+-	if (FindExecutableA((LPCTSTR)name, (LPCTSTR)"",
+-		    (LPTSTR)location) > (HINSTANCE)32)
+-	    return location;
++	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)location, -1,
++		(LPSTR)widename, 2 * BUFSIZE, NULL, NULL);
++	return widename;
+     }
+     return (char *)"";
+ }
+-# endif
+ #endif
+ 
+ STDMETHODIMP CShellExt::InvokeGvim(HWND hParent,
+diff --git a/src/dosinst.c b/src/dosinst.c
+--- a/src/dosinst.c
++++ b/src/dosinst.c
+@@ -19,6 +19,9 @@
+ #define DOSINST
+ #include "dosinst.h"
+ 
++#define GVIMEXT64_PATH	    "GvimExt64\\gvimext.dll"
++#define GVIMEXT32_PATH	    "GvimExt32\\gvimext.dll"
++
+ /* Macro to do an error check I was typing over and over */
+ #define CHECK_REG_ERROR(code) if (code != ERROR_SUCCESS) { printf("%ld error number:  %ld\n", (long)__LINE__, (long)code); return 1; }
+ 
+@@ -359,7 +362,6 @@ find_bat_exe(int check_bat_only)
+     mch_chdir(installdir);
+ }
+ 
+-#ifdef WIN3264
+ /*
+  * Get the value of $VIMRUNTIME or $VIM and write it in $TEMP/vimini.ini, so
+  * that NSIS can read it.
+@@ -612,7 +614,6 @@ uninstall_check(int skip_question)
+ 
+     return foundone;
+ }
+-#endif
+ 
+ /*
+  * Find out information about the system.
+@@ -1324,12 +1325,12 @@ init_vimrc_choices(void)
+     ++choice_count;
+ }
+ 
+-#if defined(WIN3264)
+     static LONG
+ reg_create_key(
+     HKEY root,
+     const char *subkey,
+-    PHKEY phKey)
++    PHKEY phKey,
++    DWORD flag)
+ {
+     DWORD disp;
+ 
+@@ -1337,7 +1338,7 @@ reg_create_key(
+     return RegCreateKeyEx(
+ 		root, subkey,
+ 		0, NULL, REG_OPTION_NON_VOLATILE,
+-		KEY_WOW64_64KEY | KEY_WRITE,
++		flag | KEY_WRITE,
+ 		NULL, phKey, &disp);
+ }
+ 
+@@ -1356,10 +1357,11 @@ reg_create_key_and_value(
+     HKEY hRootKey,
+     const char *subkey,
+     const char *value_name,
+-    const char *data)
++    const char *data,
++    DWORD flag)
+ {
+     HKEY hKey;
+-    LONG lRet = reg_create_key(hRootKey, subkey, &hKey);
++    LONG lRet = reg_create_key(hRootKey, subkey, &hKey, flag);
+ 
+     if (ERROR_SUCCESS == lRet)
+     {
+@@ -1375,21 +1377,22 @@ register_inproc_server(
+     const char *clsid,
+     const char *extname,
+     const char *module,
+-    const char *threading_model)
++    const char *threading_model,
++    DWORD flag)
+ {
+     CHAR subkey[BUFSIZE];
+     LONG lRet;
+ 
+     sprintf(subkey, "CLSID\\%s", clsid);
+-    lRet = reg_create_key_and_value(hRootKey, subkey, NULL, extname);
++    lRet = reg_create_key_and_value(hRootKey, subkey, NULL, extname, flag);
+     if (ERROR_SUCCESS == lRet)
+     {
+ 	sprintf(subkey, "CLSID\\%s\\InProcServer32", clsid);
+-	lRet = reg_create_key_and_value(hRootKey, subkey, NULL, module);
++	lRet = reg_create_key_and_value(hRootKey, subkey, NULL, module, flag);
+ 	if (ERROR_SUCCESS == lRet)
+ 	{
+ 	    lRet = reg_create_key_and_value(hRootKey, subkey,
+-					   "ThreadingModel", threading_model);
++					   "ThreadingModel", threading_model, flag);
+ 	}
+     }
+     return lRet;
+@@ -1400,13 +1403,15 @@ register_shellex(
+     HKEY hRootKey,
+     const char *clsid,
+     const char *name,
+-    const char *exe_path)
++    const char *exe_path,
++    DWORD flag)
+ {
+     LONG lRet = reg_create_key_and_value(
+ 	    hRootKey,
+ 	    "*\\shellex\\ContextMenuHandlers\\gvim",
+ 	    NULL,
+-	    clsid);
++	    clsid,
++	    flag);
+ 
+     if (ERROR_SUCCESS == lRet)
+     {
+@@ -1414,7 +1419,8 @@ register_shellex(
+ 		HKEY_LOCAL_MACHINE,
+ 		"Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved",
+ 		clsid,
+-		name);
++		name,
++		flag);
+ 
+ 	if (ERROR_SUCCESS == lRet)
+ 	{
+@@ -1422,7 +1428,8 @@ register_shellex(
+ 		    HKEY_LOCAL_MACHINE,
+ 		    "Software\\Vim\\Gvim",
+ 		    "path",
+-		    exe_path);
++		    exe_path,
++		    flag);
+ 	}
+     }
+     return lRet;
+@@ -1431,7 +1438,8 @@ register_shellex(
+     static LONG
+ register_openwith(
+     HKEY hRootKey,
+-    const char *exe_path)
++    const char *exe_path,
++    DWORD flag)
+ {
+     char	exe_cmd[BUFSIZE];
+     LONG	lRet;
+@@ -1441,7 +1449,8 @@ register_openwith(
+ 	    hRootKey,
+ 	    "Applications\\gvim.exe\\shell\\edit\\command",
+ 	    NULL,
+-	    exe_cmd);
++	    exe_cmd,
++	    flag);
+ 
+     if (ERROR_SUCCESS == lRet)
+     {
+@@ -1455,7 +1464,7 @@ register_openwith(
+ 	for (i = 0; ERROR_SUCCESS == lRet
+ 			   && i < sizeof(openwith) / sizeof(openwith[0]); i++)
+ 	{
+-	    lRet = reg_create_key_and_value(hRootKey, openwith[i], NULL, "");
++	    lRet = reg_create_key_and_value(hRootKey, openwith[i], NULL, "", flag);
+ 	}
+     }
+ 
+@@ -1470,14 +1479,13 @@ register_uninstall(
+     const char *uninstall_string)
+ {
+     LONG lRet = reg_create_key_and_value(hRootKey, appname,
+-						 "DisplayName", display_name);
++			     "DisplayName", display_name, KEY_WOW64_64KEY);
+ 
+     if (ERROR_SUCCESS == lRet)
+ 	lRet = reg_create_key_and_value(hRootKey, appname,
+-					 "UninstallString", uninstall_string);
++		     "UninstallString", uninstall_string, KEY_WOW64_64KEY);
+     return lRet;
+ }
+-#endif /* WIN3264 */
+ 
+ /*
+  * Add some entries to the registry:
+@@ -1489,7 +1497,6 @@ register_uninstall(
+     static int
+ install_registry(void)
+ {
+-#ifdef WIN3264
+     LONG	lRet = ERROR_SUCCESS;
+     const char	*vim_ext_ThreadingModel = "Apartment";
+     const char	*vim_ext_name = "Vim Shell Extension";
+@@ -1497,40 +1504,59 @@ install_registry(void)
+     char	vim_exe_path[BUFSIZE];
+     char	display_name[BUFSIZE];
+     char	uninstall_string[BUFSIZE];
++    int		i;
++    int		loop = is_64bit_os() ? 2 : 1;
++    DWORD	flag;
+ 
+     sprintf(vim_exe_path, "%s\\gvim.exe", installdir);
+ 
+     if (install_popup)
+     {
+ 	char	    bufg[BUFSIZE];
+-	struct stat st;
+-
+-	if (stat("gvimext.dll", &st) >= 0)
+-	    sprintf(bufg, "%s\\gvimext.dll", installdir);
+-	else
+-	    /* gvimext.dll is in gvimext subdir */
+-	    sprintf(bufg, "%s\\gvimext\\gvimext.dll", installdir);
+ 
+ 	printf("Creating \"Edit with Vim\" popup menu entry\n");
+ 
+-	lRet = register_inproc_server(
+-	    HKEY_CLASSES_ROOT, vim_ext_clsid, vim_ext_name,
+-						bufg, vim_ext_ThreadingModel);
+-	if (ERROR_SUCCESS != lRet)
+-	    return FAIL;
+-	lRet = register_shellex(
+-	    HKEY_CLASSES_ROOT, vim_ext_clsid, vim_ext_name, vim_exe_path);
+-	if (ERROR_SUCCESS != lRet)
+-	    return FAIL;
++	for (i = 0; i < loop; i++)
++	{
++	    if (i == 0)
++	    {
++		sprintf(bufg, "%s\\" GVIMEXT32_PATH, installdir);
++		flag = KEY_WOW64_32KEY;
++	    }
++	    else
++	    {
++		sprintf(bufg, "%s\\" GVIMEXT64_PATH, installdir);
++		flag = KEY_WOW64_64KEY;
++	    }
++
++	    lRet = register_inproc_server(
++		    HKEY_CLASSES_ROOT, vim_ext_clsid, vim_ext_name,
++		    bufg, vim_ext_ThreadingModel, flag);
++	    if (ERROR_SUCCESS != lRet)
++		return FAIL;
++	    lRet = register_shellex(
++		    HKEY_CLASSES_ROOT, vim_ext_clsid, vim_ext_name,
++		    vim_exe_path, flag);
++	    if (ERROR_SUCCESS != lRet)
++		return FAIL;
++	}
+     }
+ 
+     if (install_openwith)
+     {
+ 	printf("Creating \"Open with ...\" list entry\n");
+ 
+-	lRet = register_openwith(HKEY_CLASSES_ROOT, vim_exe_path);
+-	if (ERROR_SUCCESS != lRet)
+-	    return FAIL;
++	for (i = 0; i < loop; i++)
++	{
++	    if (i == 0)
++		flag = KEY_WOW64_32KEY;
++	    else
++		flag = KEY_WOW64_64KEY;
++
++	    lRet = register_openwith(HKEY_CLASSES_ROOT, vim_exe_path, flag);
++	    if (ERROR_SUCCESS != lRet)
++		return FAIL;
++	}
+     }
+ 
+     printf("Creating an uninstall entry\n");
+@@ -1554,7 +1580,6 @@ install_registry(void)
+ 	uninstall_string);
+     if (ERROR_SUCCESS != lRet)
+ 	return FAIL;
+-#endif /* WIN3264 */
+ 
+     return OK;
+ }
+@@ -1584,12 +1609,8 @@ init_popup_choice(void)
+     struct stat	st;
+ 
+     if (has_gvim
+-	    && (stat("gvimext.dll", &st) >= 0
+-		|| stat("gvimext/gvimext.dll", &st) >= 0)
+-#ifndef WIN3264
+-	    && searchpath("regedit.exe") != NULL
+-#endif
+-       )
++	    && (stat(GVIMEXT32_PATH, &st) >= 0
++		|| stat(GVIMEXT64_PATH, &st) >= 0))
+     {
+ 	choices[choice_count].changefunc = change_popup_choice;
+ 	choices[choice_count].installfunc = NULL;
+@@ -1623,11 +1644,7 @@ change_openwith_choice(int idx)
+     static void
+ init_openwith_choice(void)
+ {
+-    if (has_gvim
+-#ifndef WIN3264
+-	    && searchpath("regedit.exe") != NULL
+-#endif
+-       )
++    if (has_gvim)
+     {
+ 	choices[choice_count].changefunc = change_openwith_choice;
+ 	choices[choice_count].installfunc = NULL;
+@@ -1639,7 +1656,6 @@ init_openwith_choice(void)
+ 	add_dummy_choice();
+ }
+ 
+-#ifdef WIN3264
+ /* create_shortcut
+  *
+  * Create a shell link.
+@@ -1935,21 +1951,16 @@ toggle_shortcut_choice(int idx)
+ 	alloc_text(idx, "Create a desktop icon for %s", arg);
+     }
+ }
+-#endif /* WIN3264 */
+ 
+     static void
+ init_startmenu_choice(void)
+ {
+-#ifdef WIN3264
+     /* Start menu */
+     choices[choice_count].changefunc = toggle_startmenu_choice;
+     choices[choice_count].installfunc = NULL;
+     choices[choice_count].active = 1;
+     toggle_startmenu_choice(choice_count);	/* set the text */
+     ++choice_count;
+-#else
+-    add_dummy_choice();
+-#endif
+ }
+ 
+ /*
+@@ -1958,7 +1969,6 @@ init_startmenu_choice(void)
+     static void
+ init_shortcut_choices(void)
+ {
+-#ifdef WIN3264
+     /* Shortcut to gvim */
+     choices[choice_count].text = NULL;
+     choices[choice_count].arg = 0;
+@@ -1985,14 +1995,8 @@ init_shortcut_choices(void)
+     choices[choice_count].installfunc = install_shortcut_gview;
+     toggle_shortcut_choice(choice_count);
+     ++choice_count;
+-#else
+-    add_dummy_choice();
+-    add_dummy_choice();
+-    add_dummy_choice();
+-#endif
+ }
+ 
+-#ifdef WIN3264
+ /*
+  * Attempt to register OLE for Vim.
+  */
+@@ -2004,16 +2008,9 @@ install_OLE_register(void)
+     printf("\n--- Attempting to register Vim with OLE ---\n");
+     printf("(There is no message whether this works or not.)\n");
+ 
+-#ifndef __CYGWIN__
+     sprintf(register_command_string, "\"%s\\gvim.exe\" -silent -register", installdir);
+-#else
+-    /* handle this differently for Cygwin which sometimes has trouble with
+-     * Windows-style pathnames here. */
+-    sprintf(register_command_string, "./gvim.exe -silent -register");
+-#endif
+     system(register_command_string);
+ }
+-#endif /* WIN3264 */
+ 
+ /*
+  * Remove the last part of directory "path[]" to get its parent, and put the
+@@ -2212,19 +2209,15 @@ print_cmd_line_help(void)
+     printf("    Install the Edit-with-Vim context menu entry\n");
+     printf("-install-openwith\n");
+     printf("    Add Vim to the \"Open With...\" context menu list\n");
+-#ifdef WIN3264
+     printf("-add-start-menu");
+     printf("    Add Vim to the start menu\n");
+     printf("-install-icons");
+     printf("    Create icons for gVim executables on the desktop\n");
+-#endif
+     printf("-create-directories [vim|home]\n");
+     printf("    Create runtime directories to drop plugins into; in the $VIM\n");
+     printf("    or $HOME directory\n");
+-#ifdef WIN3264
+     printf("-register-OLE");
+     printf("    Ignored\n");
+-#endif
+     printf("\n");
+ }
+ 
+@@ -2308,12 +2301,10 @@ command_line_setup_choices(int argc, cha
+ 	    else /* No choice specified, default to vim directory */
+ 		vimfiles_dir_choice = (int)vimfiles_dir_vim;
+ 	}
+-#ifdef WIN3264
+ 	else if (strcmp(argv[i], "-register-OLE") == 0)
+ 	{
+ 	    /* This is always done when gvim is found */
+ 	}
+-#endif
+ 	else /* Unknown switch */
+ 	{
+ 	    printf("Got unknown argument argv[%d] = %s\n", i, argv[i]);
+@@ -2471,11 +2462,9 @@ install(void)
+ 	    || !interactive)
+ 	install_registry();
+ 
+-#ifdef WIN3264
+     /* Register gvim with OLE. */
+     if (has_gvim)
+ 	install_OLE_register();
+-#endif
+ }
+ 
+ /*
+@@ -2511,7 +2500,6 @@ main(int argc, char **argv)
+     /* Initialize this program. */
+     do_inits(argv);
+ 
+-#ifdef WIN3264
+     if (argc > 1 && strcmp(argv[1], "-uninstall-check") == 0)
+     {
+ 	/* Only check for already installed Vims.  Used by NSIS installer. */
+@@ -2527,7 +2515,6 @@ main(int argc, char **argv)
+ 	    sleep(3);
+ 	exit(0);
+     }
+-#endif
+ 
+     printf("This program sets up the installation of Vim "
+ 						   VIM_VERSION_MEDIUM "\n\n");
+@@ -2535,11 +2522,9 @@ main(int argc, char **argv)
+     /* Check if the user unpacked the archives properly. */
+     check_unpack();
+ 
+-#ifdef WIN3264
+     /* Check for already installed Vims. */
+     if (interactive)
+ 	uninstall_check(0);
+-#endif
+ 
+     /* Find out information about the system. */
+     inspect_system();
+diff --git a/src/dosinst.h b/src/dosinst.h
+--- a/src/dosinst.h
++++ b/src/dosinst.h
+@@ -26,19 +26,10 @@
+ # include "vimio.h"
+ # include <ctype.h>
+ 
+-# ifndef __CYGWIN__
+-#  include <direct.h>
+-# endif
++# include <direct.h>
+ 
+-# if defined(_WIN64) || defined(WIN32)
+-#  define WIN3264
+-#  include <windows.h>
+-#  include <shlobj.h>
+-# else
+-#  include <dir.h>
+-#  include <bios.h>
+-#  include <dos.h>
+-# endif
++# include <windows.h>
++# include <shlobj.h>
+ #endif
+ 
+ #ifdef UNIX_LINT
+@@ -56,7 +47,7 @@ char *searchpath(char *name);
+ #if defined(UNIX_LINT)
+ # define vim_mkdir(x, y) mkdir((char *)(x), y)
+ #else
+-# if defined(WIN3264) && !defined(__BORLANDC__)
++# ifndef __BORLANDC__
+ #  define vim_mkdir(x, y) _mkdir((char *)(x))
+ # else
+ #  define vim_mkdir(x, y) mkdir((char *)(x))
+@@ -88,6 +79,9 @@ char *searchpath(char *name);
+ # ifndef KEY_WOW64_64KEY
+ #  define KEY_WOW64_64KEY 0x0100
+ # endif
++# ifndef KEY_WOW64_32KEY
++#  define KEY_WOW64_32KEY 0x0200
++# endif
+ 
+ #define VIM_STARTMENU "Programs\\Vim " VIM_VERSION_SHORT
+ 
+@@ -134,40 +128,32 @@ myexit(int n)
+     exit(n);
+ }
+ 
+-#ifdef WIN3264
+-/* This symbol is not defined in older versions of the SDK or Visual C++ */
+ 
+-#ifndef VER_PLATFORM_WIN32_WINDOWS
+-# define VER_PLATFORM_WIN32_WINDOWS 1
+-#endif
+-
+-static DWORD g_PlatformId;
+-
++typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
+ /*
+- * Set g_PlatformId to VER_PLATFORM_WIN32_NT (NT) or
+- * VER_PLATFORM_WIN32_WINDOWS (Win95).
++ * Check if this is a 64-bit OS.
+  */
+-    static void
+-PlatformId(void)
++    static BOOL
++is_64bit_os(void)
+ {
+-    static int done = FALSE;
++#ifdef _WIN64
++    return TRUE;
++#else
++    BOOL bIsWow64 = FALSE;
++    LPFN_ISWOW64PROCESS pIsWow64Process;
+ 
+-    if (!done)
+-    {
+-	OSVERSIONINFO ovi;
+-
+-	ovi.dwOSVersionInfoSize = sizeof(ovi);
+-	GetVersionEx(&ovi);
+-
+-	g_PlatformId = ovi.dwPlatformId;
+-	done = TRUE;
+-    }
++    pIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(
++	    GetModuleHandle("kernel32"), "IsWow64Process");
++    if (pIsWow64Process != NULL)
++	pIsWow64Process(GetCurrentProcess(), &bIsWow64);
++    return bIsWow64;
++#endif
+ }
+ 
+-# ifdef __BORLANDC__
++#ifdef __BORLANDC__
+ /* Borland defines its own searchpath() in dir.h */
+-#  include <dir.h>
+-# else
++# include <dir.h>
++#else
+     static char *
+ searchpath(char *name)
+ {
+@@ -176,28 +162,17 @@ searchpath(char *name)
+ 
+     /* There appears to be a bug in FindExecutableA() on Windows NT.
+      * Use FindExecutableW() instead... */
+-    PlatformId();
+-    if (g_PlatformId == VER_PLATFORM_WIN32_NT)
++    MultiByteToWideChar(CP_ACP, 0, (LPCTSTR)name, -1,
++	    (LPWSTR)widename, BUFSIZE);
++    if (FindExecutableW((LPCWSTR)widename, (LPCWSTR)"",
++		(LPWSTR)location) > (HINSTANCE)32)
+     {
+-	MultiByteToWideChar(CP_ACP, 0, (LPCTSTR)name, -1,
+-		(LPWSTR)widename, BUFSIZE);
+-	if (FindExecutableW((LPCWSTR)widename, (LPCWSTR)"",
+-		    (LPWSTR)location) > (HINSTANCE)32)
+-	{
+-	    WideCharToMultiByte(CP_ACP, 0, (LPWSTR)location, -1,
+-		    (LPSTR)widename, 2 * BUFSIZE, NULL, NULL);
+-	    return widename;
+-	}
+-    }
+-    else
+-    {
+-	if (FindExecutableA((LPCTSTR)name, (LPCTSTR)"",
+-		    (LPTSTR)location) > (HINSTANCE)32)
+-	    return location;
++	WideCharToMultiByte(CP_ACP, 0, (LPWSTR)location, -1,
++		(LPSTR)widename, 2 * BUFSIZE, NULL, NULL);
++	return widename;
+     }
+     return NULL;
+ }
+-# endif
+ #endif
+ 
+ /*
+@@ -217,7 +192,6 @@ searchpath_save(char *name)
+     return s;
+ }
+ 
+-#ifdef WIN3264
+ 
+ #ifndef CSIDL_COMMON_PROGRAMS
+ # define CSIDL_COMMON_PROGRAMS 0x0017
+@@ -355,7 +329,6 @@ retry:
+ 
+     return OK;
+ }
+-#endif
+ 
+ /*
+  * List of targets.  The first one (index zero) is used for the default path
+@@ -406,10 +379,8 @@ char *(icon_link_names[ICON_COUNT]) =
+ 	 "gVim Easy " VIM_VERSION_SHORT ".lnk",
+ 	 "gVim Read only " VIM_VERSION_SHORT ".lnk"};
+ 
+-/* This is only used for dosinst.c when WIN3264 is defined and for uninstal.c
+- * when not being able to directly access registry entries. */
+-#if (defined(DOSINST) && defined(WIN3264)) \
+-	|| (!defined(DOSINST) && !defined(WIN3264))
++/* This is only used for dosinst.c. */
++#if defined(DOSINST)
+ /*
+  * Run an external command and wait for it to finish.
+  */
+@@ -464,24 +435,9 @@ add_pathsep(char *name)
+     int
+ change_drive(int drive)
+ {
+-#ifdef WIN3264
+     char temp[3] = "-:";
+     temp[0] = (char)(drive + 'A' - 1);
+     return !SetCurrentDirectory(temp);
+-#else
+-# ifndef UNIX_LINT
+-    union REGS regs;
+-
+-    regs.h.ah = 0x0e;
+-    regs.h.dl = drive - 1;
+-    intdos(&regs, &regs);   /* set default drive */
+-    regs.h.ah = 0x19;
+-    intdos(&regs, &regs);   /* get default drive */
+-    if (regs.h.al == drive - 1)
+-	return 0;
+-# endif
+-    return -1;
+-#endif
+ }
+ 
+ /*
+@@ -507,7 +463,7 @@ mch_chdir(char *path)
+ /*
+  * Expand the executable name into a full path name.
+  */
+-#if defined(__BORLANDC__) && !defined(WIN3264)
++#if defined(__BORLANDC__)
+ 
+ /* Only Borland C++ has this. */
+ # define my_fullpath(b, n, l) _fullpath(b, n, l)
+@@ -516,92 +472,11 @@ mch_chdir(char *path)
+     static char *
+ my_fullpath(char *buf, char *fname, int len)
+ {
+-# ifdef WIN3264
+     /* Only GetModuleFileName() will get the long file name path.
+      * GetFullPathName() may still use the short (FAT) name. */
+     DWORD len_read = GetModuleFileName(NULL, buf, (size_t)len);
+ 
+     return (len_read > 0 && len_read < (DWORD)len) ? buf : NULL;
+-# else
+-    char	olddir[BUFSIZE];
+-    char	*p, *q;
+-    int		c;
+-    char	*retval = buf;
+-
+-    if (strchr(fname, ':') != NULL)	/* already expanded */
+-    {
+-	strncpy(buf, fname, len);
+-    }
+-    else
+-    {
+-	*buf = NUL;
+-	/*
+-	 * change to the directory for a moment,
+-	 * and then do the getwd() (and get back to where we were).
+-	 * This will get the correct path name with "../" things.
+-	 */
+-	p = strrchr(fname, '/');
+-	q = strrchr(fname, '\\');
+-	if (q != NULL && (p == NULL || q > p))
+-	    p = q;
+-	q = strrchr(fname, ':');
+-	if (q != NULL && (p == NULL || q > p))
+-	    p = q;
+-	if (p != NULL)
+-	{
+-	    if (getcwd(olddir, BUFSIZE) == NULL)
+-	    {
+-		p = NULL;		/* can't get current dir: don't chdir */
+-		retval = NULL;
+-	    }
+-	    else
+-	    {
+-		if (p == fname)		/* /fname		*/
+-		    q = p + 1;		/* -> /			*/
+-		else if (q + 1 == p)	/* ... c:\foo		*/
+-		    q = p + 1;		/* -> c:\		*/
+-		else			/* but c:\foo\bar	*/
+-		    q = p;		/* -> c:\foo		*/
+-
+-		c = *q;			/* truncate at start of fname */
+-		*q = NUL;
+-		if (mch_chdir(fname))	/* change to the directory */
+-		    retval = NULL;
+-		else
+-		{
+-		    fname = q;
+-		    if (c == '\\')	/* if we cut the name at a */
+-			fname++;	/* '\', don't add it again */
+-		}
+-		*q = c;
+-	    }
+-	}
+-	if (getcwd(buf, len) == NULL)
+-	{
+-	    retval = NULL;
+-	    *buf = NUL;
+-	}
+-	/*
+-	 * Concatenate the file name to the path.
+-	 */
+-	if (strlen(buf) + strlen(fname) >= len - 1)
+-	{
+-	    printf("ERROR: File name too long!\n");
+-	    myexit(1);
+-	}
+-	add_pathsep(buf);
+-	strcat(buf, fname);
+-	if (p)
+-	    mch_chdir(olddir);
+-    }
+-
+-    /* Replace forward slashes with backslashes, required for the path to a
+-     * command. */
+-    while ((p = strchr(buf, '/')) != NULL)
+-	*p = '\\';
+-
+-    return retval;
+-# endif
+ }
+ #endif
+ 
+diff --git a/src/uninstal.c b/src/uninstal.c
+--- a/src/uninstal.c
++++ b/src/uninstal.c
+@@ -32,10 +32,8 @@ confirm(void)
+     return (scanf(" %c", answer) == 1 && toupper(answer[0]) == 'Y');
+ }
+ 
+-#ifdef WIN3264
+-
+     static int
+-reg_delete_key(HKEY hRootKey, const char *key)
++reg_delete_key(HKEY hRootKey, const char *key, DWORD flag)
+ {
+     static int did_load = FALSE;
+     static HANDLE advapi_lib = NULL;
+@@ -52,7 +50,7 @@ reg_delete_key(HKEY hRootKey, const char
+ 	    delete_key_ex = (LONG (WINAPI *)(HKEY, LPCTSTR, REGSAM, DWORD))GetProcAddress(advapi_lib, "RegDeleteKeyExA");
+     }
+     if (delete_key_ex != NULL) {
+-	return (*delete_key_ex)(hRootKey, key, KEY_WOW64_64KEY, 0);
++	return (*delete_key_ex)(hRootKey, key, flag, 0);
+     }
+     return RegDeleteKey(hRootKey, key);
+ }
+@@ -72,7 +70,9 @@ popup_gvim_path(char *buf)
+     /* Open the key where the path to gvim.exe is stored. */
+     if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Vim\\Gvim", 0,
+ 		    KEY_WOW64_64KEY | KEY_READ, &key_handle) != ERROR_SUCCESS)
+-	return 0;
++	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Vim\\Gvim", 0,
++		    KEY_WOW64_32KEY | KEY_READ, &key_handle) != ERROR_SUCCESS)
++	    return 0;
+ 
+     /* get the DisplayName out of it to show the user */
+     r = RegQueryValueEx(key_handle, "path", 0,
+@@ -111,29 +111,41 @@ openwith_gvim_path(char *buf)
+ remove_popup(void)
+ {
+     int		fail = 0;
++    int		i;
++    int		loop = is_64bit_os() ? 2 : 1;
++    int		maxfail = loop * 6;
++    DWORD	flag;
+     HKEY	kh;
+ 
+-    if (reg_delete_key(HKEY_CLASSES_ROOT, "CLSID\\{51EEE242-AD87-11d3-9C1E-0090278BBD99}\\InProcServer32") != ERROR_SUCCESS)
+-	++fail;
+-    if (reg_delete_key(HKEY_CLASSES_ROOT, "CLSID\\{51EEE242-AD87-11d3-9C1E-0090278BBD99}") != ERROR_SUCCESS)
+-	++fail;
+-    if (reg_delete_key(HKEY_CLASSES_ROOT, "*\\shellex\\ContextMenuHandlers\\gvim") != ERROR_SUCCESS)
+-	++fail;
+-    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved", 0,
+-		      KEY_WOW64_64KEY | KEY_ALL_ACCESS, &kh) != ERROR_SUCCESS)
+-	++fail;
+-    else
++    for (i = 0; i < loop; i++)
+     {
+-	if (RegDeleteValue(kh, "{51EEE242-AD87-11d3-9C1E-0090278BBD99}") != ERROR_SUCCESS)
++	if (i == 0)
++	    flag = KEY_WOW64_32KEY;
++	else
++	    flag = KEY_WOW64_64KEY;
++
++	if (reg_delete_key(HKEY_CLASSES_ROOT, "CLSID\\{51EEE242-AD87-11d3-9C1E-0090278BBD99}\\InProcServer32", flag) != ERROR_SUCCESS)
+ 	    ++fail;
+-	RegCloseKey(kh);
++	if (reg_delete_key(HKEY_CLASSES_ROOT, "CLSID\\{51EEE242-AD87-11d3-9C1E-0090278BBD99}", flag) != ERROR_SUCCESS)
++	    ++fail;
++	if (reg_delete_key(HKEY_CLASSES_ROOT, "*\\shellex\\ContextMenuHandlers\\gvim", flag) != ERROR_SUCCESS)
++	    ++fail;
++	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\Shell Extensions\\Approved", 0,
++		    flag | KEY_ALL_ACCESS, &kh) != ERROR_SUCCESS)
++	    ++fail;
++	else
++	{
++	    if (RegDeleteValue(kh, "{51EEE242-AD87-11d3-9C1E-0090278BBD99}") != ERROR_SUCCESS)
++		++fail;
++	    RegCloseKey(kh);
++	}
++	if (reg_delete_key(HKEY_LOCAL_MACHINE, "Software\\Vim\\Gvim", flag) != ERROR_SUCCESS)
++	    ++fail;
++	if (reg_delete_key(HKEY_LOCAL_MACHINE, "Software\\Vim", flag) != ERROR_SUCCESS)
++	    ++fail;
+     }
+-    if (reg_delete_key(HKEY_LOCAL_MACHINE, "Software\\Vim\\Gvim") != ERROR_SUCCESS)
+-	++fail;
+-    if (reg_delete_key(HKEY_LOCAL_MACHINE, "Software\\Vim") != ERROR_SUCCESS)
+-	++fail;
+ 
+-    if (fail == 6)
++    if (fail == maxfail)
+ 	printf("No Vim popup registry entries could be removed\n");
+     else if (fail > 0)
+ 	printf("Some Vim popup registry entries could not be removed\n");
+@@ -145,30 +157,41 @@ remove_popup(void)
+ remove_openwith(void)
+ {
+     int		fail = 0;
++    int		i;
++    int		loop = is_64bit_os() ? 2 : 1;
++    int		maxfail = loop * 7;
++    DWORD	flag;
+ 
+-    if (reg_delete_key(HKEY_CLASSES_ROOT, "Applications\\gvim.exe\\shell\\edit\\command") != ERROR_SUCCESS)
+-	++fail;
+-    if (reg_delete_key(HKEY_CLASSES_ROOT, "Applications\\gvim.exe\\shell\\edit") != ERROR_SUCCESS)
+-	++fail;
+-    if (reg_delete_key(HKEY_CLASSES_ROOT, "Applications\\gvim.exe\\shell") != ERROR_SUCCESS)
+-	++fail;
+-    if (reg_delete_key(HKEY_CLASSES_ROOT, "Applications\\gvim.exe") != ERROR_SUCCESS)
+-	++fail;
+-    if (reg_delete_key(HKEY_CLASSES_ROOT, ".htm\\OpenWithList\\gvim.exe") != ERROR_SUCCESS)
+-	++fail;
+-    if (reg_delete_key(HKEY_CLASSES_ROOT, ".vim\\OpenWithList\\gvim.exe") != ERROR_SUCCESS)
+-	++fail;
+-    if (reg_delete_key(HKEY_CLASSES_ROOT, "*\\OpenWithList\\gvim.exe") != ERROR_SUCCESS)
+-	++fail;
++    for (i = 0; i < loop; i++)
++    {
++	if (i == 0)
++	    flag = KEY_WOW64_32KEY;
++	else
++	    flag = KEY_WOW64_64KEY;
+ 
+-    if (fail == 7)
++	if (reg_delete_key(HKEY_CLASSES_ROOT, "Applications\\gvim.exe\\shell\\edit\\command", flag) != ERROR_SUCCESS)
++	    ++fail;
++	if (reg_delete_key(HKEY_CLASSES_ROOT, "Applications\\gvim.exe\\shell\\edit", flag) != ERROR_SUCCESS)
++	    ++fail;
++	if (reg_delete_key(HKEY_CLASSES_ROOT, "Applications\\gvim.exe\\shell", flag) != ERROR_SUCCESS)
++	    ++fail;
++	if (reg_delete_key(HKEY_CLASSES_ROOT, "Applications\\gvim.exe", flag) != ERROR_SUCCESS)
++	    ++fail;
++	if (reg_delete_key(HKEY_CLASSES_ROOT, ".htm\\OpenWithList\\gvim.exe", flag) != ERROR_SUCCESS)
++	    ++fail;
++	if (reg_delete_key(HKEY_CLASSES_ROOT, ".vim\\OpenWithList\\gvim.exe", flag) != ERROR_SUCCESS)
++	    ++fail;
++	if (reg_delete_key(HKEY_CLASSES_ROOT, "*\\OpenWithList\\gvim.exe", flag) != ERROR_SUCCESS)
++	    ++fail;
++    }
++
++    if (fail == maxfail)
+ 	printf("No Vim open-with registry entries could be removed\n");
+     else if (fail > 0)
+ 	printf("Some Vim open-with registry entries could not be removed\n");
+     else
+ 	printf("The Vim open-with registry entries have been removed\n");
+ }
+-#endif
+ 
+ /*
+  * Check if a batch file is really for the current version.  Don't delete a
+@@ -231,7 +254,6 @@ remove_batfiles(int doit)
+     return found;
+ }
+ 
+-#ifdef WIN3264
+     static void
+ remove_if_exists(char *path, char *filename)
+ {
+@@ -284,12 +306,11 @@ remove_start_menu(void)
+ 	}
+     }
+ }
+-#endif
+ 
+     static void
+ delete_uninstall_key(void)
+ {
+-    reg_delete_key(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Vim " VIM_VERSION_SHORT);
++    reg_delete_key(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Vim " VIM_VERSION_SHORT, KEY_WOW64_64KEY);
+ }
+ 
+     int
+@@ -297,7 +318,6 @@ main(int argc, char *argv[])
+ {
+     int		found = 0;
+     FILE	*fd;
+-#ifdef WIN3264
+     int		i;
+     struct stat st;
+     char	icon[BUFSIZE];
+@@ -308,7 +328,6 @@ main(int argc, char *argv[])
+     if (argc == 2 && stricmp(argv[1], "-nsis") == 0)
+ 	interactive = FALSE;
+     else
+-#endif
+ 	interactive = TRUE;
+ 
+     /* Initialize this program. */
+@@ -316,7 +335,6 @@ main(int argc, char *argv[])
+ 
+     printf("This program will remove the following items:\n");
+ 
+-#ifdef WIN3264
+     if (popup_gvim_path(popup_path))
+     {
+ 	printf(" - the \"Edit with Vim\" entry in the popup menu\n");
+@@ -370,7 +388,6 @@ main(int argc, char *argv[])
+ 	if (!interactive || confirm())
+ 	    remove_start_menu();
+     }
+-#endif
+ 
+     printf("\n");
+     found = remove_batfiles(0);
