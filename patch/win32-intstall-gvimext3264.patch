@@ -1,23 +1,94 @@
 # HG changeset patch
-# Parent  13fe4467499c4e995dc42532a36c8cb607ef2f1a
+# Parent  cf71b515f1080b0a724d90b2ff65a4fc9a155d72
 
+diff --git a/nsis/README.txt b/nsis/README.txt
+--- a/nsis/README.txt
++++ b/nsis/README.txt
+@@ -1,5 +1,5 @@
+ This builds a one-click install for Vim for Win32 using the Nullsoft
+-Installation System (NSIS), available at http://www.nullsoft.com/free/nsis/
++Installation System (NSIS), available at http://nsis.sourceforge.net/
+ 
+ To build the installable .exe:
+ 
+@@ -17,8 +17,14 @@ 2.  Go to the src directory and build:
+ 	uninstal.exe,
+ 	xxd/xxd.exe,
+ 
++    Then execute tools/rename.bat to rename the executables. (mv command is
++    required.)
++
+ 3.  Go to the GvimExt directory and build gvimext.dll (or get it from a binary
+-    archive).
++    archive).  Both 64- and 32-bit versions are needed and should be placed
++    as follows:
++	64-bit: src/GvimExt64/gvimext.dll
++	32-bit: src/GvimExt32/gvimext.dll
+ 
+ 4.  Go to the VisVim directory and build VisVim.dll (or get it from a binary
+     archive).
+@@ -27,13 +33,39 @@ 5.  Go to the OleVim directory and build
+     get them from a binary archive).
+ 
+ 6.  Get a "diff.exe" program and put it in the "../.." directory (above the
+-    "vim61" directory, it's the same for all Vim versions).
++    "vim80" directory, it's the same for all Vim versions).
+     You can find one in previous Vim versions or in this archive:
+ 		http://www.mossbayeng.com/~ron/vim/diffutils.tar.gz
+ 
+ 7.  Do "make uganda.nsis.txt" in runtime/doc.  This requires sed, you may have
+     to do this on Unix.  Make sure the file is in DOS file format!
+ 
++8.  Get gettext and iconv DLLs from the following site:
++	https://github.com/mlocati/gettext-iconv-windows/releases
++    Both 64- and 32-bit versions are needed.
++    Download the files gettextX.X.X.X-iconvX.XX-shared-{32,64}.zip, extract
++    DLLs and place them as follows:
++
++	<GETTEXT directory>
++	    |
++	    + gettext32/
++	    |	libintl-8.dll
++	    |	libiconv-2.dll
++	    |	libgcc_s_sjlj-1.dll
++	    |
++	    ` gettext64/
++		libintl-8.dll
++		libiconv-2.dll
++
++	<VIMRT directory> (32-bit version)
++	    libintl-8.dll
++	    libiconv-2.dll
++	    libgcc_s_sjlj-1.dll
++
++    The default <GETTEXT directory> is "..\..", however, you can change it by
++    passing /DGETTEXT=... option to the makensis command.
++
++
+ Install NSIS if you didn't do that already.
+ Also install UPX, if you want a compressed file.
+ 
 diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 --- a/nsis/gvim.nsi
 +++ b/nsis/gvim.nsi
-@@ -20,6 +20,12 @@
+@@ -20,8 +20,15 @@
    !define VIMTOOLS ..\..
  !endif
  
 +# Location of gettext.
 +# It must contain two directories: gettext32 and gettext64.
++# See README.txt for detail.
 +!ifndef GETTEXT
-+  !define GETTEXT ".."
++  !define GETTEXT "..\.."
 +!endif
 +
  # Comment the next line if you don't have UPX.
- # Get it at http://upx.sourceforge.net
+-# Get it at http://upx.sourceforge.net
++# Get it at https://upx.github.io/
  !define HAVE_UPX
-@@ -328,24 +334,59 @@ Section "Add an Edit-with-Vim context me
+ 
+ # comment the next line if you do not want to add Native Language Support
+@@ -328,24 +335,67 @@ Section "Add an Edit-with-Vim context me
  	SetOutPath $0
  	ClearErrors
  	SetOverwrite try
@@ -30,8 +101,10 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 +	  SetOutPath $0\GvimExt64
 +	  ClearErrors
 +	  File ${VIMSRC}\GvimExt64\gvimext.dll
++!ifdef HAVE_NLS
 +	  File ${GETTEXT}\gettext64\libintl-8.dll
 +	  File ${GETTEXT}\gettext64\libiconv-2.dll
++!endif
 +
 +	  IfErrors 0 GvimExt64Done
 +
@@ -40,12 +113,14 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 +	  GetTempFileName $3 $0\GvimExt64
 +	  File /oname=$3 ${VIMSRC}\GvimExt64\gvimext.dll
 +	  Rename /REBOOTOK $3 $0\GvimExt64\gvimext.dll
++!ifdef HAVE_NLS
 +	  GetTempFileName $3 $0\GvimExt64
 +	  File /oname=$3 ${GETTEXT}\gettext64\libintl-8.dll
 +	  Rename /REBOOTOK $3 $0\GvimExt64\libintl-8.dll
 +	  GetTempFileName $3 $0\GvimExt64
 +	  File /oname=$3 ${GETTEXT}\gettext64\libiconv-2.dll
 +	  Rename /REBOOTOK $3 $0\GvimExt64\libiconv-2.dll
++!endif
  	${EndIf}
 -	IfErrors 0 GvimExtDone
 +
@@ -56,9 +131,11 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 +	ClearErrors
 +
 +	File ${VIMSRC}\GvimExt32\gvimext.dll
++!ifdef HAVE_NLS
 +	File ${GETTEXT}\gettext32\libintl-8.dll
 +	File ${GETTEXT}\gettext32\libiconv-2.dll
 +	File ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
++!endif
 +
 +	IfErrors 0 GvimExt32Done
  
@@ -74,6 +151,7 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 +	GetTempFileName $3 $0\GvimExt32
 +	File /oname=$3 ${VIMSRC}\GvimExt32\gvimext.dll
 +	Rename /REBOOTOK $3 $0\GvimExt32\gvimext.dll
++!ifdef HAVE_NLS
 +	GetTempFileName $3 $0\GvimExt32
 +	File /oname=$3 ${GETTEXT}\gettext32\libintl-8.dll
 +	Rename /REBOOTOK $3 $0\GvimExt32\libintl-8.dll
@@ -83,12 +161,34 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 +	GetTempFileName $3 $0\GvimExt32
 +	File /oname=$3 ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
 +	Rename /REBOOTOK $3 $0\GvimExt32\libgcc_s_sjlj-1.dll
++!endif
  
 -	GvimExtDone:
 +	GvimExt32Done:
  	SetOverwrite lastused
  
  	# We don't have a separate entry for the "Open With..." menu, assume
+@@ -396,7 +446,7 @@ SectionEnd
+ 		SetOutPath $0
+ 		File ${VIMRT}\libintl-8.dll
+ 		File ${VIMRT}\libiconv-2.dll
+-		File /nonfatal ${VIMRT}\libwinpthread-1.dll
++		#File /nonfatal ${VIMRT}\libwinpthread-1.dll
+ 		File /nonfatal ${VIMRT}\libgcc_s_sjlj-1.dll
+ 	SectionEnd
+ !endif
+@@ -437,6 +487,11 @@ Section Uninstall
+ 	   $\nIt contains the Vim executables and runtime files." IDNO NoRemoveExes
+ 
+ 	Delete /REBOOTOK $0\*.dll
++	Delete /REBOOTOK $0\GvimExt32\*.dll
++	${If} ${RunningX64}
++	  Delete /REBOOTOK $0\GvimExt64\*.dll
++	${EndIf}
++
+ 	ClearErrors
+ 	# Remove everything but *.dll files.  Avoids that
+ 	# a lot remains when gvimext.dll cannot be deleted.
 diff --git a/src/GvimExt/gvimext.cpp b/src/GvimExt/gvimext.cpp
 --- a/src/GvimExt/gvimext.cpp
 +++ b/src/GvimExt/gvimext.cpp
