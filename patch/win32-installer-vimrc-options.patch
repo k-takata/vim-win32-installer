@@ -58,8 +58,8 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 +	# Display the InstallOptions dialog
 +
 +	# Check if a _vimrc should be created
-+	StrCmp $4 "1" +2 0
-+	  Abort
++	#StrCmp $4 "1" +2 0
++	#  Abort
 +
 +	Push $3
 +	  InstallOptions::dialog "$PLUGINSDIR\vimrc.ini"
