@@ -45,7 +45,7 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
  
  	StrCpy $1 "$1 -create-vimrc"
 +
-+	IfFileExists $INSTDIR\_vimrc +2 0
++	#IfFileExists $INSTDIR\_vimrc +2 0
 +	    StrCpy $4 "1"
  SectionEnd
  
@@ -58,8 +58,8 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 +	# Display the InstallOptions dialog
 +
 +	# Check if a _vimrc should be created
-+	#StrCmp $4 "1" +2 0
-+	#  Abort
++	StrCmp $4 "1" +2 0
++	  Abort
 +
 +	Push $3
 +	  InstallOptions::dialog "$PLUGINSDIR\vimrc.ini"
