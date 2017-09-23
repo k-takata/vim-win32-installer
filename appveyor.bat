@@ -276,7 +276,7 @@ copy xxd\xxd.exe xxdw32.exe
 copy install.exe installw32.exe
 copy uninstal.exe uninstalw32.exe
 pushd ..\nsis
-"C:\Program Files (x86)\NSIS\makensis" /DVIMRT=..\runtime /DGETTEXT=c: gvim.nsi "/XOutFile ..\..\gvim_%APPVEYOR_REPO_TAG_NAME:v=%_%ARCH%.exe"
+"C:\Program Files (x86)\NSIS\makensis" /DVIMRT=..\runtime /DGETTEXT=c: gvim.nsi "/XOutFile ..\..\gvim_%APPVEYOR_REPO_TAG_NAME:~1%_%ARCH%.exe"
 popd
 
 @echo off
