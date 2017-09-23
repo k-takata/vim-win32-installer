@@ -40,17 +40,22 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
  FunctionEnd
  
  Function .onUserAbort
-@@ -408,6 +415,9 @@ Section "Create a _vimrc if it doesn't e
+@@ -404,10 +411,13 @@ Section "Add an Edit-with-Vim context me
+ SectionEnd
+ 
+ ##########################################################
+-Section "Create a _vimrc if it doesn't exist"
++Section "Create a _vimrc if it doesn't exist" sec_vimrc_id
  	SectionIn 1 3
  
  	StrCpy $1 "$1 -create-vimrc"
 +
 +	#IfFileExists $INSTDIR\_vimrc +2 0
-+	    StrCpy $4 "1"
++	#    StrCpy $4 "1"
  SectionEnd
  
  ##########################################################
-@@ -463,6 +473,40 @@ Section -post
+@@ -463,6 +473,42 @@ Section -post
  SectionEnd
  
  ##########################################################
@@ -58,7 +63,9 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 +	# Display the InstallOptions dialog
 +
 +	# Check if a _vimrc should be created
-+	StrCmp $4 "1" +2 0
++	SectionGetFlags ${sec_vimrc_id} $0
++	IntOp $0 $0 & 1
++	StrCmp $0 "1" +2 0
 +	  Abort
 +
 +	Push $3
@@ -198,20 +205,26 @@ diff --git a/src/dosinst.c b/src/dosinst.c
      printf("    Create .bat files for Vim variants in the Windows directory.\n");
      printf("-create-vimrc\n");
      printf("    Create a default _vimrc file if one does not already exist.\n");
-+    printf("-vimrc-noremap\n");
-+    printf("    Do not remap keys when creating a default _vimrc file.\n");
++    printf("-vimrc-remap [no|win]\n");
++    printf("    Remap keys when creating a default _vimrc file.\n");
 +    printf("-vimrc-behave [unix|mswin|default]\n");
 +    printf("    Set mouse behavior when creating a default _vimrc file.\n");
      printf("-install-popup\n");
      printf("    Install the Edit-with-Vim context menu entry\n");
      printf("-install-openwith\n");
-@@ -2260,6 +2268,22 @@ command_line_setup_choices(int argc, cha
+@@ -2260,6 +2268,28 @@ command_line_setup_choices(int argc, cha
  	     */
  	    init_vimrc_choices();
  	}
-+	else if (strcmp(argv[i], "-vimrc-noremap") == 0)
++	else if (strcmp(argv[i], "-vimrc-remap") == 0)
 +	{
-+	    remap_choice = remap_no;
++	    if (i + 1 == argc)
++		break;
++	    i++;
++	    if (strcmp(argv[i], "no") == 0)
++		remap_choice = remap_no;
++	    else if (strcmp(argv[i], "win") == 0)
++		remap_choice = remap_win;
 +	}
 +	else if (strcmp(argv[i], "-vimrc-behave") == 0)
 +	{
