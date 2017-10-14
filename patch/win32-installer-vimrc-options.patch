@@ -1,0 +1,264 @@
+# HG changeset patch
+# Parent  0793db764915eac796bed5e6e21e544a3ad7ffe2
+
+diff --git a/Filelist b/Filelist
+--- a/Filelist
++++ b/Filelist
+@@ -451,6 +451,7 @@ SRC_DOS =	\
+ 		src/xxd/Make_mvc.mak \
+ 		nsis/gvim.nsi \
+ 		nsis/gvim_version.nsh \
++		nsis/vimrc.ini \
+ 		nsis/README.txt \
+ 		uninstal.txt \
+ 		src/VisVim/Commands.cpp \
+diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
+--- a/nsis/gvim.nsi
++++ b/nsis/gvim.nsi
+@@ -83,6 +83,7 @@ SilentInstall normal
+ # These are the pages we use
+ Page license
+ Page components
++Page custom SetCustom ValidateCustom ": _vimrc setting"
+ Page directory "" "" CheckInstallDir
+ Page instfiles
+ UninstPage uninstConfirm
+@@ -135,6 +136,10 @@ Function .onInit
+   StrCpy $1 "-register-OLE"
+   StrCpy $2 "gvim evim gview gvimdiff vimtutor"
+ 
++  # Extract InstallOptions files
++  # $PLUGINSDIR will automatically be removed when the installer closes
++  InitPluginsDir
++  File /oname=$PLUGINSDIR\vimrc.ini "vimrc.ini"
+ FunctionEnd
+ 
+ Function .onUserAbort
+@@ -404,7 +409,7 @@ Section "Add an Edit-with-Vim context me
+ SectionEnd
+ 
+ ##########################################################
+-Section "Create a _vimrc if it doesn't exist"
++Section "Create a _vimrc if it doesn't exist" sec_vimrc_id
+ 	SectionIn 1 3
+ 
+ 	StrCpy $1 "$1 -create-vimrc"
+@@ -463,6 +468,45 @@ Section -post
+ SectionEnd
+ 
+ ##########################################################
++Function SetCustom
++	# Display the InstallOptions dialog
++
++	# Check if a _vimrc should be created
++	SectionGetFlags ${sec_vimrc_id} $0
++	IntOp $0 $0 & 1
++	StrCmp $0 "1" +2 0
++	  Abort
++
++	Push $3
++	  InstallOptions::dialog "$PLUGINSDIR\vimrc.ini"
++	  Pop $3
++	Pop $3
++FunctionEnd
++
++Function ValidateCustom
++	ReadINIStr $3 "$PLUGINSDIR\vimrc.ini" "Field 2" "State"
++	StrCmp $3 "1" 0 +3
++	  StrCpy $1 "$1 -vimrc-remap no"
++	  Goto behave
++
++	  StrCpy $1 "$1 -vimrc-remap win"
++
++	behave:
++	ReadINIStr $3 "$PLUGINSDIR\vimrc.ini" "Field 5" "State"
++	StrCmp $3 "1" 0 +3
++	  StrCpy $1 "$1 -vimrc-behave unix"
++	  Goto done
++
++	ReadINIStr $3 "$PLUGINSDIR\vimrc.ini" "Field 6" "State"
++	StrCmp $3 "1" 0 +3
++	  StrCpy $1 "$1 -vimrc-behave mswin"
++	  Goto done
++
++	  StrCpy $1 "$1 -vimrc-behave default"
++	done:
++FunctionEnd
++
++##########################################################
+ Section Uninstall
+ 	# Apparently $INSTDIR is set to the directory where the uninstaller is
+ 	# created.  Thus the "vim61" directory is included in it.
+diff --git a/nsis/vimrc.ini b/nsis/vimrc.ini
+new file mode 100644
+--- /dev/null
++++ b/nsis/vimrc.ini
+@@ -0,0 +1,68 @@
++[Settings]
++NumFields=7
++
++[Field 1]
++Type=GroupBox
++Left=0
++Right=-1
++Top=0
++Bottom=53
++Text=" Key remapping "
++
++[Field 2]
++Type=radiobutton
++Text=Do not remap keys for Windows behavior (Default)
++Left=10
++Right=-10
++Top=17
++Bottom=25
++State=1
++Flags=GROUP
++
++[Field 3]
++Type=radiobutton
++Text=Remap a few keys for Windows behavior (CTRL-V, CTRL-C, CTRL-F, etc)
++Left=10
++Right=-10
++Top=30
++Bottom=47
++State=0
++Flags=NOTABSTOP
++
++[Field 4]
++Type=GroupBox
++Left=0
++Right=-1
++Top=55
++Bottom=-5
++Text=" Mouse behavior "
++
++[Field 5]
++Type=radiobutton
++Text=Right button extends selection, left button starts visual mode (Unix)
++Left=10
++Right=-5
++Top=72
++Bottom=80
++State=0
++Flags=GROUP
++
++[Field 6]
++Type=radiobutton
++Text=Right button has a popup menu, left button starts select mode (Windows)
++Left=10
++Right=-5
++Top=85
++Bottom=93
++State=0
++Flags=NOTABSTOP
++
++[Field 7]
++Type=radiobutton
++Text=Right button has a popup menu, left button starts visual mode (Default)
++Left=10
++Right=-5
++Top=98
++Bottom=106
++State=1
++Flags=NOTABSTOP
+diff --git a/src/dosinst.c b/src/dosinst.c
+--- a/src/dosinst.c
++++ b/src/dosinst.c
+@@ -80,21 +80,23 @@ char	*(remap_choices[]) =
+     "Do not remap keys for Windows behavior",
+     "Remap a few keys for Windows behavior (CTRL-V, CTRL-C, CTRL-F, etc)",
+ };
+-int	remap_choice = (int)remap_win;
++int	remap_choice = (int)remap_no;
+ char	*remap_text = "- %s";
+ 
+ enum
+ {
+     mouse_xterm = 1,
+-    mouse_mswin
++    mouse_mswin,
++    mouse_default
+ };
+ char	*(mouse_choices[]) =
+ {
+     "\nChoose the way how Vim uses the mouse:",
+     "right button extends selection (the Unix way)",
+-    "right button has a popup menu (the Windows way)",
++    "right button has a popup menu, left button starts select mode (the Windows way)",
++    "right button has a popup menu, left button starts visual mode",
+ };
+-int	mouse_choice = (int)mouse_mswin;
++int	mouse_choice = (int)mouse_default;
+ char	*mouse_text = "- The mouse %s";
+ 
+ enum
+@@ -155,8 +157,7 @@ get_choice(char **table, int entries)
+ 	{
+ 	    if (idx)
+ 		printf("%2d  ", idx);
+-	    printf(table[idx]);
+-	    printf("\n");
++	    puts(table[idx]);
+ 	}
+ 	printf("Choice: ");
+ 	if (scanf("%d", &answer) != 1)
+@@ -1176,6 +1177,8 @@ install_vimrc(int idx)
+ 	case mouse_mswin:
+ 		    fprintf(fd, "behave mswin\n");
+ 		    break;
++	case mouse_default:
++		    break;
+     }
+     if ((tfd = fopen("diff.exe", "r")) != NULL)
+     {
+@@ -2205,6 +2208,10 @@ print_cmd_line_help(void)
+     printf("    Create .bat files for Vim variants in the Windows directory.\n");
+     printf("-create-vimrc\n");
+     printf("    Create a default _vimrc file if one does not already exist.\n");
++    printf("-vimrc-remap [no|win]\n");
++    printf("    Remap keys when creating a default _vimrc file.\n");
++    printf("-vimrc-behave [unix|mswin|default]\n");
++    printf("    Set mouse behavior when creating a default _vimrc file.\n");
+     printf("-install-popup\n");
+     printf("    Install the Edit-with-Vim context menu entry\n");
+     printf("-install-openwith\n");
+@@ -2260,6 +2267,28 @@ command_line_setup_choices(int argc, cha
+ 	     */
+ 	    init_vimrc_choices();
+ 	}
++	else if (strcmp(argv[i], "-vimrc-remap") == 0)
++	{
++	    if (i + 1 == argc)
++		break;
++	    i++;
++	    if (strcmp(argv[i], "no") == 0)
++		remap_choice = remap_no;
++	    else if (strcmp(argv[i], "win") == 0)
++		remap_choice = remap_win;
++	}
++	else if (strcmp(argv[i], "-vimrc-behave") == 0)
++	{
++	    if (i + 1 == argc)
++		break;
++	    i++;
++	    if (strcmp(argv[i], "unix") == 0)
++		mouse_choice = mouse_xterm;
++	    else if (strcmp(argv[i], "mswin") == 0)
++		mouse_choice = mouse_mswin;
++	    else if (strcmp(argv[i], "default") == 0)
++		mouse_choice = mouse_default;
++	}
+ 	else if (strcmp(argv[i], "-install-popup") == 0)
+ 	{
+ 	    init_popup_choice();
+@@ -2424,8 +2453,7 @@ NULL
+     printf("\n");
+     for (i = 0; items[i] != NULL; ++i)
+     {
+-	printf(items[i]);
+-	printf("\n");
++	puts(items[i]);
+ 	printf("Hit Enter to continue, b (back) or q (quit help): ");
+ 	c = getchar();
+ 	rewind(stdin);
