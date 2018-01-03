@@ -1,0 +1,16 @@
+diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
+index 871ce673a..cff6fb6b8 100644
+--- a/nsis/gvim.nsi
++++ b/nsis/gvim.nsi
+@@ -89,6 +89,11 @@ Page instfiles
+ UninstPage uninstConfirm
+ UninstPage instfiles
+ 
++# Reserve files
++# Needed for showing vimrc setting page faster.
++ReserveFile /plugin InstallOptions.dll
++ReserveFile vimrc.ini
++
+ ##########################################################
+ # Functions
+ 
