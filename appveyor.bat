@@ -76,6 +76,7 @@ set SUBSYSTEM_VER=!SUBSYSTEM_VER%BIT%!
 :: Update PATH
 path %PYTHON_DIR%;%PYTHON3_DIR%;%PERL_DIR%\bin;%path%;%LUA_DIR%;%RUBY_DIR%\bin;%RUBY_DIR%\bin\ruby_builtin_dlls;%RACKET_DIR%;%RACKET_DIR%\lib
 
+where lua53.dll
 if /I "%1"=="" (
   set target=build
 ) else (
