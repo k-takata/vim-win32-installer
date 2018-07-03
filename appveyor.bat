@@ -14,8 +14,8 @@ if /I "%ARCH%"=="x64" (
 :: Download URLs, local dirs and versions
 :: Lua
 set LUA_VER=53
-set LUA32_URL=http://downloads.sourceforge.net/luabinaries/lua-5.3.2_Win32_dllw4_lib.zip
-set LUA64_URL=http://downloads.sourceforge.net/luabinaries/lua-5.3.2_Win64_dllw4_lib.zip
+set LUA32_URL=http://downloads.sourceforge.net/luabinaries/lua-5.3.4_Win32_dllw4_lib.zip
+set LUA64_URL=http://downloads.sourceforge.net/luabinaries/lua-5.3.4_Win64_dllw4_lib.zip
 set LUA_URL=!LUA%BIT%_URL!
 set LUA_DIR=C:\Lua
 :: Perl
