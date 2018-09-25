@@ -1,0 +1,113 @@
+# HG changeset patch
+# Parent  c1f4eadd1fdc6cff0a889aaf495f9b4c2337f90d
+
+diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
+--- a/nsis/gvim.nsi
++++ b/nsis/gvim.nsi
+@@ -350,8 +350,10 @@ Section "Add an Edit-with-Vim context me
+ 	  ClearErrors
+ 	  File /oname=gvimext.dll ${VIMSRC}\GvimExt\gvimext64.dll
+ !ifdef HAVE_NLS
+-	  File ${GETTEXT}\gettext64\libintl-8.dll
+-	  File ${GETTEXT}\gettext64\libiconv-2.dll
++	  ${If} ${SectionIsSelected} ${sec_nls_id}
++	    File ${GETTEXT}\gettext64\libintl-8.dll
++	    File ${GETTEXT}\gettext64\libiconv-2.dll
++	  ${EndIf}
+ !endif
+ 
+ 	  ${If} ${Errors}
+@@ -361,12 +363,14 @@ Section "Add an Edit-with-Vim context me
+ 	    File /oname=$3 ${VIMSRC}\GvimExt\gvimext64.dll
+ 	    Rename /REBOOTOK $3 $0\GvimExt64\gvimext.dll
+ !ifdef HAVE_NLS
+-	    GetTempFileName $3 $0\GvimExt64
+-	    File /oname=$3 ${GETTEXT}\gettext64\libintl-8.dll
+-	    Rename /REBOOTOK $3 $0\GvimExt64\libintl-8.dll
+-	    GetTempFileName $3 $0\GvimExt64
+-	    File /oname=$3 ${GETTEXT}\gettext64\libiconv-2.dll
+-	    Rename /REBOOTOK $3 $0\GvimExt64\libiconv-2.dll
++	    ${If} ${SectionIsSelected} ${sec_nls_id}
++	      GetTempFileName $3 $0\GvimExt64
++	      File /oname=$3 ${GETTEXT}\gettext64\libintl-8.dll
++	      Rename /REBOOTOK $3 $0\GvimExt64\libintl-8.dll
++	      GetTempFileName $3 $0\GvimExt64
++	      File /oname=$3 ${GETTEXT}\gettext64\libiconv-2.dll
++	      Rename /REBOOTOK $3 $0\GvimExt64\libiconv-2.dll
++	    ${EndIf}
+ !endif
+ 	  ${EndIf}
+ 	${EndIf}
+@@ -377,27 +381,37 @@ Section "Add an Edit-with-Vim context me
+ 
+ 	File /oname=gvimext.dll ${VIMSRC}\GvimExt\gvimext.dll
+ !ifdef HAVE_NLS
+-	File ${GETTEXT}\gettext32\libintl-8.dll
+-	File ${GETTEXT}\gettext32\libiconv-2.dll
+-	File ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
++	${If} ${SectionIsSelected} ${sec_nls_id}
++	  File ${GETTEXT}\gettext32\libintl-8.dll
++	  File ${GETTEXT}\gettext32\libiconv-2.dll
++  !if /FileExists "${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll"
++	  # Install libgcc_s_sjlj-1.dll only if it is needed.
++	  File ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
++  !endif
++	${EndIf}
+ !endif
+ 
+ 	${If} ${Errors}
+-	  # Can't copy gvimext.dll, create it under another name and rename it on
+-	  # next reboot.
++	  # Can't copy gvimext.dll, create it under another name and rename it
++	  # on next reboot.
+ 	  GetTempFileName $3 $0\GvimExt32
+ 	  File /oname=$3 ${VIMSRC}\GvimExt\gvimext.dll
+ 	  Rename /REBOOTOK $3 $0\GvimExt32\gvimext.dll
+ !ifdef HAVE_NLS
+-	  GetTempFileName $3 $0\GvimExt32
+-	  File /oname=$3 ${GETTEXT}\gettext32\libintl-8.dll
+-	  Rename /REBOOTOK $3 $0\GvimExt32\libintl-8.dll
+-	  GetTempFileName $3 $0\GvimExt32
+-	  File /oname=$3 ${GETTEXT}\gettext32\libiconv-2.dll
+-	  Rename /REBOOTOK $3 $0\GvimExt32\libiconv-2.dll
+-	  GetTempFileName $3 $0\GvimExt32
+-	  File /oname=$3 ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
+-	  Rename /REBOOTOK $3 $0\GvimExt32\libgcc_s_sjlj-1.dll
++	  ${If} ${SectionIsSelected} ${sec_nls_id}
++	    GetTempFileName $3 $0\GvimExt32
++	    File /oname=$3 ${GETTEXT}\gettext32\libintl-8.dll
++	    Rename /REBOOTOK $3 $0\GvimExt32\libintl-8.dll
++	    GetTempFileName $3 $0\GvimExt32
++	    File /oname=$3 ${GETTEXT}\gettext32\libiconv-2.dll
++	    Rename /REBOOTOK $3 $0\GvimExt32\libiconv-2.dll
++  !if /FileExists "${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll"
++	    # Install libgcc_s_sjlj-1.dll only if it is needed.
++	    GetTempFileName $3 $0\GvimExt32
++	    File /oname=$3 ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
++	    Rename /REBOOTOK $3 $0\GvimExt32\libgcc_s_sjlj-1.dll
++  !endif
++	  ${EndIf}
+ !endif
+ 	${EndIf}
+ 	SetOverwrite lastused
+@@ -439,7 +453,7 @@ SectionEnd
+ 
+ ##########################################################
+ !ifdef HAVE_NLS
+-Section "Native Language Support"
++Section "Native Language Support" sec_nls_id
+ 	SectionIn 1 3
+ 
+ 	SetOutPath $0\lang
+@@ -451,7 +465,10 @@ Section "Native Language Support"
+ 	File ${GETTEXT}\gettext32\libintl-8.dll
+ 	File ${GETTEXT}\gettext32\libiconv-2.dll
+ 	#File /nonfatal ${VIMRT}\libwinpthread-1.dll
+-	File /nonfatal ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
++  !if /FileExists "${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll"
++	# Install libgcc_s_sjlj-1.dll only if it is needed.
++	File ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
++  !endif
+ SectionEnd
+ !endif
+ 
