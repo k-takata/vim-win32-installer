@@ -182,17 +182,21 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 +	${If} $3 == "1"
  	  StrCpy $1 "$1 -vimrc-behave unix"
 -	  Goto done
-+	${EndIf}
- 
- 	ReadINIStr $3 "$PLUGINSDIR\vimrc.ini" "Field 6" "State"
+-
+-	ReadINIStr $3 "$PLUGINSDIR\vimrc.ini" "Field 6" "State"
 -	StrCmp $3 "1" 0 +3
-+	${If} $3 == "1"
- 	  StrCpy $1 "$1 -vimrc-behave mswin"
+-	  StrCpy $1 "$1 -vimrc-behave mswin"
 -	  Goto done
 -
-+	${Else}
- 	  StrCpy $1 "$1 -vimrc-behave default"
+-	  StrCpy $1 "$1 -vimrc-behave default"
 -	done:
++	${Else}
++	  ReadINIStr $3 "$PLUGINSDIR\vimrc.ini" "Field 6" "State"
++	  ${If} $3 == "1"
++	    StrCpy $1 "$1 -vimrc-behave mswin"
++	  ${Else}
++	    StrCpy $1 "$1 -vimrc-behave default"
++	  ${EndIf}
 +	${EndIf}
  FunctionEnd
  
