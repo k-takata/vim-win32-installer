@@ -111,7 +111,7 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 +Section -do_install_gvimext
 +
 +	${IfNot} ${SectionIsSelected} ${sec_gvimext_id}
-+	  Abort
++	  Return
 +	${EndIf}
 +
 +	# Be aware of this sequence of events:
