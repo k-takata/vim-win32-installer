@@ -1,0 +1,17 @@
+# HG changeset patch
+# Parent  e594ed3db83a3fe443bb9d23efaea9ea846251ea
+
+diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
+--- a/nsis/gvim.nsi
++++ b/nsis/gvim.nsi
+@@ -488,9 +488,7 @@ Function SetCustom
+ 	# Display the InstallOptions dialog
+ 
+ 	# Check if a _vimrc should be created
+-	SectionGetFlags ${sec_vimrc_id} $3
+-	IntOp $3 $3 & 1
+-	${If} $3 = 1
++	${IfNot} ${SectionIsSelected} ${sec_vimrc_id}
+ 	  Abort
+ 	${EndIf}
+ 
