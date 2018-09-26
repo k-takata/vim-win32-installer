@@ -78,64 +78,62 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
  	${EndIf}
  	SetOverwrite lastused
  
-@@ -461,6 +426,60 @@ Section "Native Language Support"
+@@ -461,6 +426,58 @@ Section "Native Language Support"
  	# Install libgcc_s_sjlj-1.dll only if it is needed.
  	File ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
    !endif
 +
-+	${IfNot} ${SectionIsSelected} ${sec_gvimext_id}
-+	  Return
-+	${EndIf}
++	${If} ${SectionIsSelected} ${sec_gvimext_id}
++	  SetOverwrite try
 +
-+	SetOverwrite try
++	  ${If} ${RunningX64}
++	    # Install DLLs for 64-bit gvimext.dll into the GvimExt64 directory.
++	    SetOutPath $0\GvimExt64
++	    ClearErrors
++	    File ${GETTEXT}\gettext64\libintl-8.dll
++	    File ${GETTEXT}\gettext64\libiconv-2.dll
 +
-+	${If} ${RunningX64}
-+	  # Install DLLs for 64-bit gvimext.dll into the GvimExt64 directory.
-+	  SetOutPath $0\GvimExt64
++	    ${If} ${Errors}
++	      # Can't copy the DLLs, create it under another name and rename it
++	      # on next reboot.
++	      GetTempFileName $3 $0\GvimExt64
++	      File /oname=$3 ${GETTEXT}\gettext64\libintl-8.dll
++	      Rename /REBOOTOK $3 $0\GvimExt64\libintl-8.dll
++	      GetTempFileName $3 $0\GvimExt64
++	      File /oname=$3 ${GETTEXT}\gettext64\libiconv-2.dll
++	      Rename /REBOOTOK $3 $0\GvimExt64\libiconv-2.dll
++	    ${EndIf}
++	  ${EndIf}
++
++	  # Install DLLs for 32-bit gvimext.dll into the GvimExt32 directory.
++	  SetOutPath $0\GvimExt32
 +	  ClearErrors
-+	  File ${GETTEXT}\gettext64\libintl-8.dll
-+	  File ${GETTEXT}\gettext64\libiconv-2.dll
++	  File ${GETTEXT}\gettext32\libintl-8.dll
++	  File ${GETTEXT}\gettext32\libiconv-2.dll
++  !if /FileExists "${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll"
++	  # Install libgcc_s_sjlj-1.dll only if it is needed.
++	  File ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
++  !endif
 +
 +	  ${If} ${Errors}
 +	    # Can't copy the DLLs, create it under another name and rename it
 +	    # on next reboot.
-+	    GetTempFileName $3 $0\GvimExt64
-+	    File /oname=$3 ${GETTEXT}\gettext64\libintl-8.dll
-+	    Rename /REBOOTOK $3 $0\GvimExt64\libintl-8.dll
-+	    GetTempFileName $3 $0\GvimExt64
-+	    File /oname=$3 ${GETTEXT}\gettext64\libiconv-2.dll
-+	    Rename /REBOOTOK $3 $0\GvimExt64\libiconv-2.dll
++	    GetTempFileName $3 $0\GvimExt32
++	    File /oname=$3 ${GETTEXT}\gettext32\libintl-8.dll
++	    Rename /REBOOTOK $3 $0\GvimExt32\libintl-8.dll
++	    GetTempFileName $3 $0\GvimExt32
++	    File /oname=$3 ${GETTEXT}\gettext32\libiconv-2.dll
++	    Rename /REBOOTOK $3 $0\GvimExt32\libiconv-2.dll
++  !if /FileExists "${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll"
++	    # Install libgcc_s_sjlj-1.dll only if it is needed.
++	    GetTempFileName $3 $0\GvimExt32
++	    File /oname=$3 ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
++	    Rename /REBOOTOK $3 $0\GvimExt32\libgcc_s_sjlj-1.dll
++  !endif
 +	  ${EndIf}
++
++	  SetOverwrite lastused
 +	${EndIf}
-+
-+	# Install DLLs for 32-bit gvimext.dll into the GvimExt32 directory.
-+	SetOutPath $0\GvimExt32
-+	ClearErrors
-+	File ${GETTEXT}\gettext32\libintl-8.dll
-+	File ${GETTEXT}\gettext32\libiconv-2.dll
-+  !if /FileExists "${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll"
-+	# Install libgcc_s_sjlj-1.dll only if it is needed.
-+	File ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
-+  !endif
-+
-+	${If} ${Errors}
-+	  # Can't copy the DLLs, create it under another name and rename it
-+	  # on next reboot.
-+	  GetTempFileName $3 $0\GvimExt32
-+	  File /oname=$3 ${GETTEXT}\gettext32\libintl-8.dll
-+	  Rename /REBOOTOK $3 $0\GvimExt32\libintl-8.dll
-+	  GetTempFileName $3 $0\GvimExt32
-+	  File /oname=$3 ${GETTEXT}\gettext32\libiconv-2.dll
-+	  Rename /REBOOTOK $3 $0\GvimExt32\libiconv-2.dll
-+  !if /FileExists "${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll"
-+	  # Install libgcc_s_sjlj-1.dll only if it is needed.
-+	  GetTempFileName $3 $0\GvimExt32
-+	  File /oname=$3 ${GETTEXT}\gettext32\libgcc_s_sjlj-1.dll
-+	  Rename /REBOOTOK $3 $0\GvimExt32\libgcc_s_sjlj-1.dll
-+  !endif
-+	${EndIf}
-+
-+	SetOverwrite lastused
  SectionEnd
  !endif
  
