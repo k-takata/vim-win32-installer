@@ -1,0 +1,15 @@
+# HG changeset patch
+# Parent  1c4504c4db4fe53a7ae2e2f3787d8d0e6ef0c46c
+
+diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
+--- a/nsis/gvim.nsi
++++ b/nsis/gvim.nsi
+@@ -46,6 +46,8 @@ Name "Vim ${VER_MAJOR}.${VER_MINOR}"
+ OutFile gvim${VER_MAJOR}${VER_MINOR}.exe
+ CRCCheck force
+ SetCompressor /SOLID lzma
++SetCompressorDictSize 64
++ManifestDPIAware true
+ SetDatablockOptimize on
+ RequestExecutionLevel highest
+ XPStyle on
