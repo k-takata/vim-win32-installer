@@ -58,17 +58,13 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
  	SectionIn 1 3
  
  	SetOutPath $0\lang
-@@ -489,6 +495,43 @@ SectionEnd
+@@ -489,6 +495,39 @@ SectionEnd
  
  ##########################################################
  Section -post
 +
 +	# Get estimated install size
 +	SectionGetSize ${sec_main_id} $3
-+	${If} ${SectionIsSelected} ${sec_cons_id}
-+	  SectionGetSize ${sec_cons_id} $4
-+	  IntOp $3 $3 + $4
-+	${EndIf}
 +	${If} ${SectionIsSelected} ${sec_cons_id}
 +	  SectionGetSize ${sec_cons_id} $4
 +	  IntOp $3 $3 + $4
