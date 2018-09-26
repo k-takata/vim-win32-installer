@@ -58,7 +58,7 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
  	SectionIn 1 3
  
  	SetOutPath $0\lang
-@@ -489,6 +495,42 @@ SectionEnd
+@@ -489,6 +495,43 @@ SectionEnd
  
  ##########################################################
  Section -post
@@ -91,6 +91,7 @@ diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
 +	${If} ${RunningX64}
 +	  SetRegView 64
 +	${EndIf}
++	WriteRegStr HKLM "${UNINST_REG_KEY}" "DisplayIcon" '"$0\gvim.exe",0'
 +	WriteRegStr HKLM "${UNINST_REG_KEY}" "DisplayVersion" "${VER_MAJOR}.${VER_MINOR}"
 +	WriteRegStr HKLM "${UNINST_REG_KEY}" "Publisher" "${PUBLISHER}"
 +	WriteRegDWORD HKLM "${UNINST_REG_KEY}" "EstimatedSize" $3
