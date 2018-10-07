@@ -1,0 +1,46 @@
+From d77328739c18ddd120fc8af459ecd1080d808bed Mon Sep 17 00:00:00 2001
+From: "K.Takata" <kentkt@csc.jp>
+Date: Sun, 7 Oct 2018 14:45:15 +0900
+Subject: [PATCH 30/30] nsis,dosinst: Add " (x64)" to product name for 64-bit
+
+---
+ nsis/gvim.nsi | 4 ++++
+ src/dosinst.c | 6 +++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
+index b152e28be..1e93c733f 100644
+--- a/nsis/gvim.nsi
++++ b/nsis/gvim.nsi
+@@ -63,7 +63,11 @@ Unicode true
+ !define UNINST_REG_KEY	"Software\Microsoft\Windows\CurrentVersion\Uninstall"
+ !define UNINST_REG_KEY_VIM  "${UNINST_REG_KEY}\${PRODUCT}"
+ 
++!ifdef WIN64
++Name "${PRODUCT} (x64)"
++!else
+ Name "${PRODUCT}"
++!endif
+ OutFile gvim${VER_MAJOR}${VER_MINOR}.exe
+ CRCCheck force
+ SetCompressor /SOLID lzma
+diff --git a/src/dosinst.c b/src/dosinst.c
+index 357eebbb4..8b8586a19 100644
+--- a/src/dosinst.c
++++ b/src/dosinst.c
+@@ -1596,7 +1596,11 @@ install_registry(void)
+     }
+ 
+     printf("Creating an uninstall entry\n");
+-    sprintf(display_name, "Vim " VIM_VERSION_SHORT);
++    sprintf(display_name, "Vim " VIM_VERSION_SHORT
++#ifdef _WIN64
++	    " (x64)"
++#endif
++	    );
+ 
+     /* For the NSIS installer use the generated uninstaller. */
+     if (interactive)
+-- 
+2.17.0
+
