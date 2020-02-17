@@ -1,0 +1,74 @@
+# HG changeset patch
+# Parent  719ef6bdda0c96f06f760c1a3448e86abc46ca84
+
+diff --git a/src/Make_mvc.mak b/src/Make_mvc.mak
+--- a/src/Make_mvc.mak
++++ b/src/Make_mvc.mak
+@@ -1361,7 +1361,7 @@ all:	$(MAIN_TARGET) \
+ $(OUTDIR):
+ 	if not exist $(OUTDIR)/nul  mkdir $(OUTDIR)
+ 
+-CFLAGS_INST = /nologo -DNDEBUG -DWIN32 -DWINVER=$(WINVER) -D_WIN32_WINNT=$(WINVER) $(CFLAGS_DEPR)
++CFLAGS_INST = /nologo /O2 -DNDEBUG -DWIN32 -DWINVER=$(WINVER) -D_WIN32_WINNT=$(WINVER) $(CFLAGS_DEPR)
+ 
+ install.exe: dosinst.c dosinst.h version.h
+ 	$(CC) $(CFLAGS_INST) dosinst.c kernel32.lib shell32.lib \
+diff --git a/src/dosinst.c b/src/dosinst.c
+--- a/src/dosinst.c
++++ b/src/dosinst.c
+@@ -841,6 +841,7 @@ install_bat_choice(int idx)
+ 
+ 	    fprintf(fd, "@echo off\n");
+ 	    fprintf(fd, "rem -- Run Vim --\n");
++	    fprintf(fd, VIMBAT_UNINSTKEY "\n");
+ 	    fprintf(fd, "\n");
+ 	    fprintf(fd, "setlocal\n");
+ 
+diff --git a/src/dosinst.h b/src/dosinst.h
+--- a/src/dosinst.h
++++ b/src/dosinst.h
+@@ -354,6 +354,9 @@ struct
+ 					"vimtutor.bat",  "vimtutor.bat", ""},
+ };
+ 
++/* Uninstall key for vim.bat, etc. */
++#define VIMBAT_UNINSTKEY    "rem # uninstall key: " VIM_VERSION_NODOT " #"
++
+ #define ICON_COUNT 3
+ char *(icon_names[ICON_COUNT]) =
+ 	{"gVim " VIM_VERSION_SHORT,
+diff --git a/src/uninstall.c b/src/uninstall.c
+--- a/src/uninstall.c
++++ b/src/uninstall.c
+@@ -200,8 +200,7 @@ batfile_thisversion(char *path)
+ {
+     FILE	*fd;
+     char	line[BUFSIZE];
+-    char	*p;
+-    int		ver_len = strlen(VIM_VERSION_NODOT);
++    int		key_len = strlen(VIMBAT_UNINSTKEY);
+     int		found = FALSE;
+ 
+     fd = fopen(path, "r");
+@@ -209,17 +208,11 @@ batfile_thisversion(char *path)
+     {
+ 	while (fgets(line, sizeof(line), fd) != NULL)
+ 	{
+-	    for (p = line; *p != 0; ++p)
+-		// don't accept "vim60an" when looking for "vim60".
+-		if (strnicmp(p, VIM_VERSION_NODOT, ver_len) == 0
+-			&& !isdigit(p[ver_len])
+-			&& !isalpha(p[ver_len]))
+-		{
+-		    found = TRUE;
+-		    break;
+-		}
+-	    if (found)
++	    if (strncmp(line, VIMBAT_UNINSTKEY, key_len) == 0)
++	    {
++		found = TRUE;
+ 		break;
++	    }
+ 	}
+ 	fclose(fd);
+     }
