@@ -10,8 +10,8 @@ environment:
     - ARCH: x64
     - ARCH: x86
 
-matrix:
-  fast_finish: true
+#matrix:
+#  fast_finish: true
 
 # Shallow clone cannot be used when using git-submodule
 shallow_clone: false
