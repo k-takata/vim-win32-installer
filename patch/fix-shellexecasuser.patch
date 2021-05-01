@@ -1,0 +1,12 @@
+diff --git a/nsis/gvim.nsi b/nsis/gvim.nsi
+--- a/nsis/gvim.nsi
++++ b/nsis/gvim.nsi
+@@ -302,7 +302,7 @@ FunctionEnd
+ 
+ Function LaunchApplication
+    SetOutPath $0
+-   ShellExecAsUser::ShellExecAsUser "" "$0\gvim.exe" "-R $"$0\README.txt$""
++   ShellExecAsUser::ShellExecAsUser "" "$0\gvim.exe" '-R "$0\README.txt"'
+ FunctionEnd
+ 
+ ##########################################################
