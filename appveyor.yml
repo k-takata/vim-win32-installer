@@ -23,7 +23,8 @@ build:
   verbosity: minimal
 
 before_build:
-  - dir c:\cygwin64\bin\jq.exe
+  - c:\msys64\usr\bin\pacman -S --needed mingw-w64-x86_64-jq
+  - dir c:\msys64\mingw64\bin\jq.exe
   - '"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %ARCH%'
   - '"%APPVEYOR_BUILD_FOLDER%\appveyor.bat" install'
 
@@ -140,7 +141,7 @@ deploy:
 
 on_success:
   - |
-    curl -H "Authorization: token %auth_token%" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/%APPVEYOR_REPO_NAME%/releases/tags/%APPVEYOR_REPO_TAG_NAME%" | jq {"id"}[] > release_id.txt
+    curl -H "Authorization: token %auth_token%" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/%APPVEYOR_REPO_NAME%/releases/tags/%APPVEYOR_REPO_TAG_NAME%" | c:\msys64\mingw64\bin\jq.exe {"id"}[] > release_id.txt
     for /f "delims=" %%i in (release_id.txt) do set REL_ID=%%i
     curl -X PATCH -H "Authorization: token %auth_token%" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/%APPVEYOR_REPO_NAME%/releases/%REL_ID%" -d "{'draft':false}"
 
