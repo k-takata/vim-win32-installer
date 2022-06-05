@@ -143,9 +143,10 @@ on_success:
     curl -o c:\cygwin64\setup-x86_64.exe https://cygwin.com/setup-x86_64.exe
     c:\cygwin64\setup-x86_64.exe -qnNdO -P jq
     path %PATH%;c:\cygwin64\bin
-    curl -H "Authorization: token %auth_token%" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/%APPVEYOR_REPO_NAME%/releases/tags/%APPVEYOR_REPO_TAG_NAME%" > release.json
+    curl -H "Authorization: token %auth_token%" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/%APPVEYOR_REPO_NAME%/releases" > release.json
     type release.json
-    type release.json | jq "{'id'}[]" > release_id.txt
+    type release.json | jq ".[] | {name, id} | select( .name == \"%APPVEYOR_REPO_TAG_NAME%\") | {id}[]" > release_id.txt
+    type release_id.txt
     for /f "delims=" %%i in (release_id.txt) do set REL_ID=%%i
     curl -X PATCH -H "Authorization: token %auth_token%" -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/%APPVEYOR_REPO_NAME%/releases/%REL_ID%" -d "{'draft':false}"
 
