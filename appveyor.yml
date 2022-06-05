@@ -23,6 +23,7 @@ build:
   verbosity: minimal
 
 before_build:
+  - curl https://cygwin.com/setup-x86_64.exe -O c:\cygwin64\setup-x86_64.exe
   - c:\cygwin64\setup-x86_64.exe -qnNdO -P jq
   - dir c:\cygwin64\bin\jq.exe
   - '"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %ARCH%'
