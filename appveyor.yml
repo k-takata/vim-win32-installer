@@ -23,7 +23,7 @@ build:
   verbosity: minimal
 
 before_build:
-  - c:\msys64\usr\bin\pacman -S --needed mingw-w64-x86_64-jq
+  - c:\msys64\usr\bin\pacman -S --needed --noconfirm mingw-w64-x86_64-jq
   - dir c:\msys64\mingw64\bin\jq.exe
   - '"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %ARCH%'
   - '"%APPVEYOR_BUILD_FOLDER%\appveyor.bat" install'
