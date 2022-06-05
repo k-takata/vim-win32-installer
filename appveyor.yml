@@ -121,7 +121,7 @@ deploy:
 
       See the [README](https://github.com/vim/vim-win32-installer/blob/master/README.md) for detail.
     auth_token:
-      secure: YrMnwLHSan/k7sXGqGPra8MZW4FlNamRxypP5iZ4gPNv96dSuJxcArxSIWX1oh/s
+      secure: sR0je0hfk7Zu2Ut8PTl3DWW2IaRXjicjgO5LNswUCAY4EhFPSneYyURG5lf73q0Q
     artifact: /^gvim_.*/
     draft: false
     prerelease: false
