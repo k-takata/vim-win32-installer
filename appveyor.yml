@@ -10,7 +10,7 @@ environment:
     secure: Ren8cbJnovyLFJO+91+ZeMvHFuiN/gwss7avDjif0TdhD1rK5FdbH0DqegU87a5t
 
   matrix:
-    - ARCH: x64
+    #- ARCH: x64
     - ARCH: x86
 
 matrix:
@@ -21,6 +21,9 @@ shallow_clone: false
 
 build:
   verbosity: minimal
+
+init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 
 before_build:
   - '"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %ARCH%'
