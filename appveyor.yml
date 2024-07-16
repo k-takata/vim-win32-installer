@@ -20,6 +20,9 @@ build:
   verbosity: minimal
 
 before_build:
+  - 'echo APPVEYOR_REPO_BRANCH=%APPVEYOR_REPO_BRANCH%'
+  - 'echo APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME=%APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME%'
+  - 'echo APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH=%APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH%'
   - 'call ver'
   - 'set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"'
   - >
