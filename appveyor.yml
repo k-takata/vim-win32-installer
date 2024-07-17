@@ -79,6 +79,7 @@ deploy:
     # Deploy only on tags
     on:
       APPVEYOR_REPO_TAG: true
+      APPVEYOR_REPO_NAME: 'vim/vim-win32-installer'
 
   - provider: GitHub
     description: |
@@ -143,11 +144,12 @@ deploy:
     # Deploy only on tags
     on:
       APPVEYOR_REPO_TAG: true
+      APPVEYOR_REPO_NAME: 'vim/vim-win32-installer'
 
-      # Cache is being disabled to allow signpath to sign the results
+    # Cache is being disabled to allow signpath to sign the results
 
-      #cache:
-      #  - downloads -> appveyor.bat
+    #cache:
+    #  - downloads -> appveyor.bat
 
 on_success:
   - '"%APPVEYOR_BUILD_FOLDER%\appveyor.bat" onsuccess'
