@@ -408,6 +408,7 @@ goto :eof
 :: Turn off the draft status of the release when x86 is successfully finished.
 
 if not defined APPVEYOR_REPO_TAG_NAME goto :eof
+if not "%APPVEYOR_REPO_NAME%"=="vim/vim-win32-installer" goto :eof
 
 call :get_release_id
 
@@ -423,6 +424,7 @@ goto :eof
 :: Delete the release when x86 is failed.
 
 if not defined APPVEYOR_REPO_TAG_NAME goto :eof
+if not "%APPVEYOR_REPO_NAME%"=="vim/vim-win32-installer" goto :eof
 
 call :get_release_id
 
