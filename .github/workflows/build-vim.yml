@@ -868,7 +868,7 @@ jobs:
 
         URL=https://github.com/${{ github.repository }}/releases/download
 
-        cat << EOF > changelog.md
+        cat << EOF | tee changelog.md
         [![${latesttag}](https://img.shields.io/github/downloads/${{ github.repository }}/${latesttag}/total.svg)](https://github.com/${{ github.repository }}/releases/tag/${latesttag})
         Nightly Vim Windows build snapshots ([more information](https://vim.fandom.com/wiki/Where_to_download_Vim)).
 
