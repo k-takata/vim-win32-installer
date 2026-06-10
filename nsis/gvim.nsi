@@ -436,6 +436,7 @@ Section "$(str_section_old_ver)" id_section_old_ver
   SectionIn 1 2 3 RO
 
   DetailPrint "$(str_msg_uninstalling)"
+  SetDetailsPrint listonly  # Keep the above message while waiting for uninstallation
   ${Do}
     call FindOldUninstaller
     Pop $3
@@ -470,6 +471,7 @@ Section "$(str_section_old_ver)" id_section_old_ver
       ${ExitDo}  ; Just ignore for now.
     ${EndIf}
   ${Loop}
+  SetDetailsPrint lastused
 
   # We may have been put to the background when uninstall did something.
   BringToFront
