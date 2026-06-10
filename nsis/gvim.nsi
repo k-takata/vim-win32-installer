@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # NSIS file to create a self-installing exe for Vim.
 # It requires NSIS version 3.0 or later.
-# Last Change:	2025-09-30
+# Last Change:	2026-06-10
 #
 
 Unicode true  ; !include defaults to UTF-8 after Unicode True since 3.0 Alpha 2

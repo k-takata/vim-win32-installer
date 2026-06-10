@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # NSIS helper file for creating a self-installing exe for Vim.
 # Contains service macros and functions.
-# Last Change:	2025-09-03
+# Last Change:	2026-06-10
 #
 
 !ifndef __AUXILIARY__NSH__
