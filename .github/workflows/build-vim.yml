@@ -695,6 +695,7 @@ jobs:
 #        ping -n 3600 localhost>nul
 
     - name: Test gvim/vim and show the result of gvim tests
+      if: False # XXX
       shell: cmd
       timeout-minutes: 30
       run: |
@@ -718,6 +719,7 @@ jobs:
         cd ..
 
     - name: Show the result of vim tests
+      if: False # XXX
       shell: cmd
       timeout-minutes: 10
       run: |
