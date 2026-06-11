@@ -67,8 +67,8 @@ LangString str_desc_cmdline         ${LANG_DANISH}     "Make Vim easier to use f
 LangString str_section_launcher     ${LANG_DANISH}     "Vim launchers"
 LangString str_desc_launcher        ${LANG_DANISH}     "Install small programs for Vim variants in the Windows directory for command line use."
 
-LangString str_section_add_path     ${LANG_DANISH}     "Add to PATH"
-LangString str_desc_add_path        ${LANG_DANISH}     "Add the Vim directory to the PATH environment variable."
+LangString str_section_addpath      ${LANG_DANISH}     "Add to PATH"
+LangString str_desc_addpath         ${LANG_DANISH}     "Add the Vim directory to the PATH environment variable."
 
 LangString str_group_icons          ${LANG_DANISH}     "Opret ikoner til Vim"
 LangString str_desc_icons           ${LANG_DANISH}     "Opret ikoner til Vim diverse steder for at hjælpe med at gøre adgangen let."

@@ -88,9 +88,9 @@ LangString str_desc_launcher        ${LANG_SERBIAN} \
     "Install small programs for Vim variants in the Windows directory \
      for command line use."
 
-LangString str_section_add_path     ${LANG_SERBIAN} \
+LangString str_section_addpath      ${LANG_SERBIAN} \
     "Add to PATH"
-LangString str_desc_add_path        ${LANG_SERBIAN} \
+LangString str_desc_addpath         ${LANG_SERBIAN} \
     "Add the Vim directory to the PATH environment variable."
 
 LangString str_group_icons          ${LANG_SERBIAN} \

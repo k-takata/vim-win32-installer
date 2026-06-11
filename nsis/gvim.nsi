@@ -646,7 +646,7 @@ SectionGroup $(str_group_cmdline) id_group_cmdline
     !endif
   SectionEnd
 
-  Section "$(str_section_add_path)" id_section_add_path
+  Section "$(str_section_addpath)" id_section_addpath
     SectionIn 3
 
     ${If} $MultiUser.InstallMode == "AllUsers"
@@ -1000,7 +1000,7 @@ Section -post
   # Store the selections to the registry.
   !insertmacro SaveSectionSelection ${id_section_console}    "select_console"
   !insertmacro SaveSectionSelection ${id_section_launcher}   "select_launcher"
-  !insertmacro SaveSectionSelection ${id_section_add_path}   "select_add_path"
+  !insertmacro SaveSectionSelection ${id_section_addpath}    "select_addpath"
   !insertmacro SaveSectionSelection ${id_section_desktop}    "select_desktop"
   !insertmacro SaveSectionSelection ${id_section_startmenu}  "select_startmenu"
   !insertmacro SaveSectionSelection ${id_section_editwith}   "select_editwith"
@@ -1047,7 +1047,7 @@ Function .onInit
   # Load the selections from the registry (if any).
   !insertmacro LoadSectionSelection ${id_section_console}    "select_console"
   !insertmacro LoadSectionSelection ${id_section_launcher}   "select_launcher"
-  !insertmacro LoadSectionSelection ${id_section_add_path}   "select_add_path"
+  !insertmacro LoadSectionSelection ${id_section_addpath}    "select_addpath"
   !insertmacro LoadSectionSelection ${id_section_desktop}    "select_desktop"
   !insertmacro LoadSectionSelection ${id_section_startmenu}  "select_startmenu"
   !insertmacro LoadSectionSelection ${id_section_editwith}   "select_editwith"
@@ -1059,6 +1059,23 @@ Function .onInit
   !insertmacro LoadDefaultVimrc $vim_compat_stat "vim_compat"   "all"
   !insertmacro LoadDefaultVimrc $vim_keymap_stat "vim_keyremap" "default"
   !insertmacro LoadDefaultVimrc $vim_mouse_stat  "vim_mouse"    "default"
+
+  # Parse command line
+  ${GetParameters} $3
+  !insertmacro ParseCmdSectionSelection $3 "/console="	  ${id_section_console}
+  !insertmacro ParseCmdSectionSelection $3 "/launcher="	  ${id_section_launcher}
+  !insertmacro ParseCmdSectionSelection $3 "/addpath="	  ${id_section_addpath}
+  !insertmacro ParseCmdSectionSelection $3 "/desktop="	  ${id_section_desktop}
+  !insertmacro ParseCmdSectionSelection $3 "/startmenu="  ${id_section_startmenu}
+  !insertmacro ParseCmdSectionSelection $3 "/editwith="	  ${id_section_editwith}
+  !insertmacro ParseCmdSectionSelection $3 "/vimrc="	  ${id_section_vimrc}
+  !insertmacro ParseCmdSectionSelection $3 "/pluginhome=" ${id_section_pluginhome}
+  !insertmacro ParseCmdSectionSelection $3 "/pluginvim="  ${id_section_pluginvim}
+  !insertmacro ParseCmdSectionSelection $3 "/nls="	  ${id_section_nls}
+  ${GetOptions} $3 "/compat=" $vim_compat_stat
+  ${GetOptions} $3 "/keymap=" $vim_keymap_stat
+  ${GetOptions} $3 "/mouse="  $vim_mouse_stat
+  ClearErrors
 
   # User variables:
   # $0 - holds the directory the runtime files are installed to
@@ -1217,7 +1234,7 @@ FunctionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${id_section_console}   $(str_desc_console)
   !insertmacro MUI_DESCRIPTION_TEXT ${id_group_cmdline}	    $(str_desc_cmdline)
   !insertmacro MUI_DESCRIPTION_TEXT ${id_section_launcher}  $(str_desc_launcher)
-  !insertmacro MUI_DESCRIPTION_TEXT ${id_section_add_path}  $(str_desc_add_path)
+  !insertmacro MUI_DESCRIPTION_TEXT ${id_section_addpath}   $(str_desc_addpath)
   !insertmacro MUI_DESCRIPTION_TEXT ${id_group_icons}	    $(str_desc_icons)
   !insertmacro MUI_DESCRIPTION_TEXT ${id_section_desktop}   $(str_desc_desktop)
   !insertmacro MUI_DESCRIPTION_TEXT ${id_section_startmenu} $(str_desc_start_menu)

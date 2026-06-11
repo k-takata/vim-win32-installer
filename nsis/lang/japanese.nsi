@@ -96,9 +96,9 @@ LangString str_section_launcher     ${LANG_JAPANESE} \
 LangString str_desc_launcher        ${LANG_JAPANESE} \
     "コマンドラインから Vim と関連コマンドを実行できるよう、小さなプログラムを Windows ディレクトリに登録します。"
 
-LangString str_section_add_path     ${LANG_JAPANESE} \
+LangString str_section_addpath      ${LANG_JAPANESE} \
     "PATH に追加"
-LangString str_desc_add_path        ${LANG_JAPANESE} \
+LangString str_desc_addpath         ${LANG_JAPANESE} \
     "Vim ディレクトリを PATH 環境変数に追加します。"
 
 LangString str_group_icons          ${LANG_JAPANESE} \

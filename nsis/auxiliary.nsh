@@ -102,7 +102,7 @@
     ClearErrors
     ReadRegDWORD $3 SHCTX "${UNINST_REG_KEY_VIM}" ${reg_value}
     ${IfNot} ${Errors}
-      ${If} $3 = 1
+      ${If} $3 <> 0
 	!insertmacro SelectSection ${section_id}
       ${Else}
 	!insertmacro UnselectSection ${section_id}
@@ -117,6 +117,19 @@
     ${If} ${Errors}
     ${OrIf} ${out_var} == ""
       StrCpy ${out_var} ${default_value}
+    ${EndIf}
+  !macroend
+
+# Parse the command line option and set the section status
+  !macro ParseCmdSectionSelection cmdline cmdopt section_id
+    ClearErrors
+    ${GetOptions} ${cmdline} ${cmdopt} $4
+    ${IfNot} ${Errors}
+      ${If} $4 <> 0
+	!insertmacro SelectSection ${section_id}
+      ${Else}
+	!insertmacro UnSelectSection ${section_id}
+      ${EndIf}
     ${EndIf}
   !macroend
 
