@@ -518,9 +518,10 @@ Section "$(str_section_exe)" id_section_exe
     File ${VIMTOOLS}\libsodium.dll
   !endif
 
+  File ${SRC}\vimtutor.bat
+
   # Runtime files
   SetOutPath $0
-  File ${SRC}\vimtutor.bat
   File ${SRC}\README.txt
   !if /FileExists "${SRC}\LICENSE"
     File /oname=LICENSE.txt ${SRC}\LICENSE
@@ -684,9 +685,10 @@ SectionGroup $(str_group_icons) id_group_icons
     CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\gVim Diff.lnk" "$INSTDIR\gvim.exe" "-d"
     CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Help.lnk" "$INSTDIR\gvim.exe" "-c h"
 
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim tutor.lnk" "$INSTDIR\vimtutor.bat"
+
     SetOutPath $0   ; Set workdir for the shortcuts
     CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Uninstall.lnk" "$0\uninstall-gui.exe"
-    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim tutor.lnk" "$0\vimtutor.bat"
 
     WriteINIStr "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim Online.url" "InternetShortcut" "URL" "https://www.vim.org/"
   SectionEnd
@@ -834,18 +836,18 @@ Section "$(str_section_vim_rc)" id_section_vimrc
       FileWrite $3 `  let arg3 = v:fname_out$\n`
       FileWrite $3 `  if arg3 =~ ' ' | let arg3 = '"' . arg3 . '"' | endif$\n`
       FileWrite $3 `  let arg3 = substitute(arg3, '!', '\!', 'g')$\n`
-      FileWrite $3 `  if $$VIMRUNTIME =~ ' '$\n`
+      FileWrite $3 `  if $$VIM =~ ' '$\n`
       FileWrite $3 `    if &sh =~ '\<cmd'$\n`
       FileWrite $3 `      if empty(&shellxquote)$\n`
       FileWrite $3 `        let l:shxq_sav = ''$\n`
       FileWrite $3 `        set shellxquote&$\n`
       FileWrite $3 `      endif$\n`
-      FileWrite $3 `      let cmd = '"' . $$VIMRUNTIME . '\diff"'$\n`
+      FileWrite $3 `      let cmd = '"' . $$VIM . '\diff"'$\n`
       FileWrite $3 `    else$\n`
-      FileWrite $3 `      let cmd = substitute($$VIMRUNTIME, ' ', '" ', '') . '\diff"'$\n`
+      FileWrite $3 `      let cmd = substitute($$VIM, ' ', '" ', '') . '\diff"'$\n`
       FileWrite $3 `    endif$\n`
       FileWrite $3 `  else$\n`
-      FileWrite $3 `    let cmd = $$VIMRUNTIME . '\diff'$\n`
+      FileWrite $3 `    let cmd = $$VIM . '\diff'$\n`
       FileWrite $3 `  endif$\n`
       FileWrite $3 `  let cmd = substitute(cmd, '!', '\!', 'g')$\n`
       FileWrite $3 `  silent execute '!' . cmd . ' ' . opt . arg1 . ' ' . arg2 . ' > ' . arg3$\n`
@@ -1392,6 +1394,7 @@ Section "un.$(str_unsection_exe)" id_unsection_exe
   RMDir /r $0\keymap
   RMDir /r $0\bitmaps
   Delete $INSTDIR\*.exe
+  Delete $INSTDIR\*.bat
   Delete $0\*.exe
   Delete $0\*.bat
   Delete $0\*.vim
