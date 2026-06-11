@@ -786,15 +786,6 @@ jobs:
         ref: for-vim
         path: NsisMultiUser
 
-    - name: Create license files for nsis
-      shell: msys2 {0}
-      run: |
-        cd vim/lang
-        for i in LICENSE.*.txt ../LICENSE; do
-          # Convert to UTF-8 with BOM
-          LC_ALL=C sed -e $'1s/^/\xef\xbb\xbf/' $i > $(basename $i .txt).nsis.txt
-        done
-
     - name: Package (installer)
       shell: cmd
       run: |
@@ -814,6 +805,9 @@ jobs:
         rem if ERRORLEVEL 8 exit 1
         rem robocopy vim\src\GvimExt package\%DEST_INST%\GvimExt /E /NP /NFL /NDL
         rem if ERRORLEVEL 8 exit 1
+
+        rem Create license files for nsis
+        call msys2 scripts/create_nsis_lic_files.sh ./vim
 
         cd nsis
 

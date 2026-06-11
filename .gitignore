@@ -2,3 +2,6 @@
 *.orig
 *.swp
 *~
+
+/vim/
+/NsisMultiUser/
