@@ -138,11 +138,11 @@ ManifestSupportedOS \
   !define PLATFORM  "x86"
 !endif
 
-!define PRODUCT_NAME    "Vim"
-!define VERSION_WO_PAT  "${VER_MAJOR}.${VER_MINOR}"
-!define VERSION         "${VER_MAJOR}.${VER_MINOR}.${PATCHLEVEL}"
-!define PRODUCT_AND_VER "${PRODUCT_NAME} ${VERSION_WO_PAT}"
-!define PRODUCT_FULL    "${PRODUCT_NAME} ${VERSION_WO_PAT} (${PLATFORM})"
+!define PRODUCT_NAME	"Vim"
+!define VERSION_SHORT	"${VER_MAJOR}.${VER_MINOR}"
+!define VERSION		"${VER_MAJOR}.${VER_MINOR}.${PATCHLEVEL}"
+!define PRODUCT_AND_VER	"${PRODUCT_NAME} ${VERSION_SHORT}"
+!define PRODUCT_FULL	"${PRODUCT_NAME} ${VERSION_SHORT} (${PLATFORM})"
 !define PROGEXE		"gvim.exe"
 !define COMPANY_NAME	"The Vim Project"
 !define PRODUCT_REG_KEY	"Software\${PRODUCT_NAME}"
@@ -663,9 +663,9 @@ SectionGroup $(str_group_icons) id_group_icons
     SectionIn 1 3
 
     SetOutPath "%HOMEDRIVE%%HOMEPATH%"	; Set workdir for the shortcuts
-    CreateShortCut "$DESKTOP\gVim ${VERSION_WO_PAT}.lnk" "$INSTDIR\gvim.exe"
-    CreateShortCut "$DESKTOP\gVim Easy ${VERSION_WO_PAT}.lnk" "$INSTDIR\gvim.exe" "-y"
-    CreateShortCut "$DESKTOP\gVim Read-only ${VERSION_WO_PAT}.lnk" "$INSTDIR\gvim.exe" "-R"
+    CreateShortCut "$DESKTOP\gVim ${VERSION_SHORT}.lnk" "$INSTDIR\gvim.exe"
+    CreateShortCut "$DESKTOP\gVim Easy ${VERSION_SHORT}.lnk" "$INSTDIR\gvim.exe" "-y"
+    CreateShortCut "$DESKTOP\gVim Read-only ${VERSION_SHORT}.lnk" "$INSTDIR\gvim.exe" "-R"
   SectionEnd
 
   Section "$(str_section_start_menu)" id_section_startmenu
@@ -1287,9 +1287,9 @@ Section "un.$(str_unsection_register)" id_unsection_register
 
   # Delete shortcuts
   RMDir /r "$SMPROGRAMS\${PRODUCT_AND_VER}"
-  Delete "$DESKTOP\gVim ${VERSION_WO_PAT}.lnk"
-  Delete "$DESKTOP\gVim Easy ${VERSION_WO_PAT}.lnk"
-  Delete "$DESKTOP\gVim Read-only ${VERSION_WO_PAT}.lnk"
+  Delete "$DESKTOP\gVim ${VERSION_SHORT}.lnk"
+  Delete "$DESKTOP\gVim Easy ${VERSION_SHORT}.lnk"
+  Delete "$DESKTOP\gVim Read-only ${VERSION_SHORT}.lnk"
 
   # Delete from PATH
   ${If} $MultiUser.InstallMode == "AllUsers"
