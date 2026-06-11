@@ -19,7 +19,7 @@ Unicode true  ; !include defaults to UTF-8 after Unicode True since 3.0 Alpha 2
 
 # Top directory of the Vim repository
 !ifndef SRC
-  !define SRC ".."
+  !define SRC "..\vim"
 !endif
 
 # Location of gvim.exe, vim.exe, etc.

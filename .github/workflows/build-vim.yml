@@ -826,7 +826,6 @@ jobs:
           /INPUTCHARSET UTF8 ^
           /DPLUG_NSISMULTIUSER=%PLUG_NSISMULTIUSER% ^
           /DPLUG_ENVAR=%PLUG_ENVAR% ^
-          /DSRC=..\vim ^
           /DVIMBIN=..\package\%PKG%\vim\%VIM_DIR% ^
           /DVIMRT=..\package\%PKG%\vim\%VIM_DIR% ^
           /DINCLUDE_LIBGCC=%INCLUDE_LIBGCC% ^
