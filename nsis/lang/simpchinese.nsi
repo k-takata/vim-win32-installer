@@ -29,7 +29,7 @@ LicenseLangString page_lic_file ${LANG_SIMPCHINESE} \
 # Translated README.txt file, which is opened after installation          {{{1
 ##############################################################################
 
-LangString vim_readme_file ${LANG_SIMPCHINESE} "${SRC}\README.zh_cn.txt"
+LangString vim_readme_file ${LANG_SIMPCHINESE} "README.zh_cn.txt"
 
 ##############################################################################
 # MUI Configuration Strings                                               {{{1

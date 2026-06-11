@@ -27,7 +27,7 @@ LicenseLangString page_lic_file ${LANG_PORTUGUESEBR} "${SRC}\lang\LICENSE.pt_br.
 # README.txt file, which is opened after installation                     {{{1
 ##############################################################################
 
-LangString vim_readme_file ${LANG_PORTUGUESEBR} "${SRC}\README.pt_br.txt"
+LangString vim_readme_file ${LANG_PORTUGUESEBR} "README.pt_br.txt"
 
 ##############################################################################
 # MUI Configuration Strings                                               {{{1

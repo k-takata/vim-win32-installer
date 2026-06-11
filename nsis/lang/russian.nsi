@@ -27,7 +27,7 @@ LicenseLangString page_lic_file ${LANG_RUSSIAN} "${SRC}\lang\LICENSE.ru.nsis.txt
 # Translated README.txt file, which is opened after installation          {{{1
 ##############################################################################
 
-LangString vim_readme_file ${LANG_RUSSIAN} "${SRC}\README.ru.txt"
+LangString vim_readme_file ${LANG_RUSSIAN} "README.ru.txt"
 
 ##############################################################################
 # MUI Configuration Strings                                               {{{1

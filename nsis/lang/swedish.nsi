@@ -27,7 +27,7 @@ LicenseLangString page_lic_file ${LANG_SWEDISH} "${SRC}\lang\LICENSE.sv.nsis.txt
 # README.txt-fil, som öppnas efter installationen                     {{{1
 ##############################################################################
 
-LangString vim_readme_file ${LANG_SWEDISH} "${SRC}\README.sv.txt"
+LangString vim_readme_file ${LANG_SWEDISH} "README.sv.txt"
 
 ##############################################################################
 # MUI-konfigurationssträngar                                               {{{1

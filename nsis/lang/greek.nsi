@@ -28,8 +28,8 @@ LicenseLangString page_lic_file 0 "${SRC}\lang\LICENSE.nsis.txt"
 # Translated README.txt file, which is opened after installation          {{{1
 ##############################################################################
 
-LangString vim_readme_file 0 "${SRC}\README.txt"
-#LangString vim_readme_file ${LANG_GREEK} "${SRC}\README.el.txt"
+LangString vim_readme_file 0 "README.txt"
+#LangString vim_readme_file ${LANG_GREEK} "README.el.txt"
 
 ##############################################################################
 # MUI Configuration Strings                                               {{{1

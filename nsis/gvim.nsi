@@ -423,9 +423,9 @@ Function LaunchApplication
   System::Call "User32::SetWindowPos(i, i, i, i, i, i, i) b ($HWNDPARENT, 0, -1000, -1000, 0, 0, ${SWP_NOZORDER}|${SWP_NOSIZE})"
 
   ${If} ${FileExists} "$0\$(vim_readme_file)"
-    !insertmacro UAC_AsUser_ExecShell "" "$0\${PROGEXE}" '-R "$0\$(vim_readme_file)"' "" ""
+    !insertmacro UAC_AsUser_ExecShell "" "$INSTDIR\${PROGEXE}" '-R "$0\$(vim_readme_file)"' "" ""
   ${Else}
-    !insertmacro UAC_AsUser_ExecShell "" "$0\${PROGEXE}" '-R "$0\README.txt"' "" ""
+    !insertmacro UAC_AsUser_ExecShell "" "$INSTDIR\${PROGEXE}" '-R "$0\README.txt"' "" ""
   ${EndIf}
 FunctionEnd
 
