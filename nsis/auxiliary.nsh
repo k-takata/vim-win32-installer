@@ -134,6 +134,7 @@
   !macroend
 
 # Get user locale
+!if 0
   Var lng_usr  ; variable containing the locale of the current user
 
   !include "StrFunc.nsh"
@@ -152,7 +153,7 @@
       StrCpy $lng_usr $R9 2
     ${EndIf}
   FunctionEnd
-
+!endif
 
 
 !endif # __AUXILIARY__NSH__
