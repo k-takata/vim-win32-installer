@@ -117,9 +117,9 @@ ManifestDPIAware true
 # https://github.com/NSIS-Dev/nsis/blob/691211035c2aaaebe8fbca48ee02d4de93594a52/Docs/src/attributes.but#L292
 ManifestDPIAwareness "PerMonitorV2,System"
 ManifestSupportedOS \
-    {35138b9a-5d96-4fbd-8e2d-a2440225f93a} /* WinNT 6.1 */ \
-    {4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38} /* WinNT 6.2 */ \
-    {1f676c76-80e1-4239-95bb-83d0f6d0da78} /* WinNT 6.3 */ \
+    {35138b9a-5d96-4fbd-8e2d-a2440225f93a} /* WinNT 6.1 (7) */ \
+    {4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38} /* WinNT 6.2 (8) */ \
+    {1f676c76-80e1-4239-95bb-83d0f6d0da78} /* WinNT 6.3 (8.1) */ \
     {8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a} /* WinNT 10/11 */
 
 !if ${WIN64}
@@ -152,7 +152,7 @@ ManifestSupportedOS \
 !define UNINST_REG_KEY	      "Software\Microsoft\Windows\CurrentVersion\Uninstall"
 !define UNINST_REG_KEY_VIM    "${UNINST_REG_KEY}\${PRODUCT_AND_VER}"
 !define GVIMEXT_CLSID	      "{51EEE242-AD87-11d3-9C1E-0090278BBD99}"
-!define VIMRUNTIME_DIR_NAME   "runtime"
+!define VIMRUNTIME_DIR_NAME   "runtime"	  # "vim${VER_MAJOR}${VER_MINOR}"
 !define UNINSTALL_FILENAME    "${VIMRUNTIME_DIR_NAME}\uninstall-gui.exe"
 
 ; NsisMultiUser optional defines
@@ -409,7 +409,7 @@ Function CheckOldVim
 FunctionEnd
 
 Function LaunchApplication
-  SetOutPath $0
+  SetOutPath $INSTDIR
 
   ; The installer might exit too soon before the application starts and it
   ; loses the right to be the foreground window and starts in the background
@@ -461,7 +461,6 @@ Section "$(str_section_old_ver)" id_section_old_ver
       CopyFiles $3 "$5.exe"
       Delete $5
       ${GetParent} $3 $6
-      #ExecShellWait "open" "$5.exe" "$4 /S _?=$6" SW_SHOW
       ExecWait '"$5.exe" $4 /S _?=$6'
       Delete "$5.exe"
 
@@ -486,15 +485,13 @@ Section "$(str_section_exe)" id_section_exe
 
   # Binary files
   SetOutPath $INSTDIR
-  File /oname=gvim.exe ${VIMBIN}\gvim.exe
+  File ${VIMBIN}\gvim.exe
   !if /FileExists "${VIMBIN}\vim${BIT}.dll"
     File ${VIMBIN}\vim${BIT}.dll
   !endif
-  #File /oname=install.exe ${VIMBIN}\install.exe
-  #File /oname=uninstall.exe ${VIMBIN}\uninstall.exe
   File ${VIMBIN}\vimrun.exe
-  File /oname=tee.exe ${VIMBIN}\tee.exe
-  File /oname=xxd.exe ${VIMBIN}\xxd.exe
+  File ${VIMBIN}\tee.exe
+  File ${VIMBIN}\xxd.exe
 
   # Create hard links
   ReadEnvStr $3 "COMSPEC"
@@ -597,7 +594,7 @@ Section "$(str_section_console)" id_section_console
   SectionIn 1 3
 
   SetOutPath $INSTDIR
-  File /oname=vim.exe ${VIMBIN}\vim.exe
+  File ${VIMBIN}\vim.exe
 
   # Create hard links
   ReadEnvStr $3 "COMSPEC"
@@ -686,12 +683,14 @@ SectionGroup $(str_group_icons) id_group_icons
     CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\gVim Diff.lnk" "$INSTDIR\gvim.exe" "-d"
     CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Help.lnk" "$INSTDIR\gvim.exe" "-c h"
 
-    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim tutor.lnk" "$INSTDIR\vimtutor.bat" "" "" "" SW_SHOWMINIMIZED
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim tutor.lnk" "$INSTDIR\vimtutor.bat" \
+	"" "" "" SW_SHOWMINIMIZED
 
     SetOutPath $0   ; Set workdir for the shortcuts
     CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Uninstall.lnk" "$0\uninstall-gui.exe"
 
-    WriteINIStr "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim Online.url" "InternetShortcut" "URL" "https://www.vim.org/"
+    WriteINIStr "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim Online.url" "InternetShortcut" "URL" \
+	"https://www.vim.org/"
   SectionEnd
 SectionGroupEnd
 
@@ -993,7 +992,6 @@ Section -post
   # Register uninstall information
   !insertmacro MULTIUSER_RegistryAddInstallInfo
   # Add some settings
-  #WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}" "DisplayIcon" "$INSTDIR\gvim.exe"
   WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}" "EstimatedSize" $3
   WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}" "AllowSilent" 1
 
@@ -1418,7 +1416,6 @@ Section "un.$(str_unsection_exe)" id_unsection_exe
 
   # Vim launcher
   ExpandEnvStrings $3 "%SystemRoot%"  ; Normally "C:\WINDOWS"
-  SetOutPath $3
   Delete $3\gvim.exe
   Delete $3\gvimdiff.exe
   Delete $3\gview.exe
@@ -1427,7 +1424,7 @@ Section "un.$(str_unsection_exe)" id_unsection_exe
   Delete $3\vimdiff.exe
   Delete $3\view.exe
 
-  # No error message if the "vim91" directory can't be removed, the
+  # No error message if the "vim92" directory can't be removed, the
   # gvimext.dll may still be there.
   RMDir $0
 SectionEnd
