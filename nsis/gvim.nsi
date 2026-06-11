@@ -485,7 +485,7 @@ Section "$(str_section_exe)" id_section_exe
   StrCpy $0 "$INSTDIR\${VIMRUNTIME_DIR_NAME}"
 
   # Binary files
-  SetOutPath $0
+  SetOutPath $INSTDIR
   File /oname=gvim.exe ${VIMBIN}\gvim.exe
   !if /FileExists "${VIMBIN}\vim${BIT}.dll"
     File ${VIMBIN}\vim${BIT}.dll
@@ -586,7 +586,7 @@ Section "$(str_section_exe)" id_section_exe
 
   # OLE
   ${If} $MultiUser.InstallMode == "AllUsers"
-    ExecShellWait "" "$0\gvim.exe" "-silent -register" SW_HIDE
+    ExecShellWait "" "$INSTDIR\gvim.exe" "-silent -register" SW_HIDE
   ${EndIf}
 SectionEnd
 
@@ -594,7 +594,7 @@ SectionEnd
 Section "$(str_section_console)" id_section_console
   SectionIn 1 3
 
-  SetOutPath $0
+  SetOutPath $INSTDIR
   File /oname=vim.exe ${VIMBIN}\vim.exe
 
   # Create hard links
@@ -635,11 +635,11 @@ SectionGroup $(str_group_cmdline) id_group_cmdline
     ${EndIf}
 
     ${If} ${RunningX64}
-      WriteRegStr SHCTX "Software\Vim\Gvim" "path" "$0\${PROGEXE}"
+      WriteRegStr SHCTX "Software\Vim\Gvim" "path" "$INSTDIR\${PROGEXE}"
     ${EndIf}
     !if ! ${ARM64}
       SetRegView 32
-      WriteRegStr SHCTX "Software\Vim\Gvim" "path" "$0\${PROGEXE}"
+      WriteRegStr SHCTX "Software\Vim\Gvim" "path" "$INSTDIR\${PROGEXE}"
       SetRegView lastused
     !endif
   SectionEnd
@@ -652,7 +652,7 @@ SectionGroup $(str_group_cmdline) id_group_cmdline
     ${Else}
       EnVar::SetHKCU
     ${EndIf}
-    EnVar::AddValue "PATH" $0
+    EnVar::AddValue "PATH" $INSTDIR
   SectionEnd
 SectionGroupEnd
 
@@ -662,9 +662,9 @@ SectionGroup $(str_group_icons) id_group_icons
     SectionIn 1 3
 
     SetOutPath "%HOMEDRIVE%%HOMEPATH%"	; Set workdir for the shortcuts
-    CreateShortCut "$DESKTOP\gVim ${VERSION_WO_PAT}.lnk" "$0\gvim.exe"
-    CreateShortCut "$DESKTOP\gVim Easy ${VERSION_WO_PAT}.lnk" "$0\gvim.exe" "-y"
-    CreateShortCut "$DESKTOP\gVim Read-only ${VERSION_WO_PAT}.lnk" "$0\gvim.exe" "-R"
+    CreateShortCut "$DESKTOP\gVim ${VERSION_WO_PAT}.lnk" "$INSTDIR\gvim.exe"
+    CreateShortCut "$DESKTOP\gVim Easy ${VERSION_WO_PAT}.lnk" "$INSTDIR\gvim.exe" "-y"
+    CreateShortCut "$DESKTOP\gVim Read-only ${VERSION_WO_PAT}.lnk" "$INSTDIR\gvim.exe" "-R"
   SectionEnd
 
   Section "$(str_section_start_menu)" id_section_startmenu
@@ -674,15 +674,15 @@ SectionGroup $(str_group_icons) id_group_icons
 
     SetOutPath "%HOMEDRIVE%%HOMEPATH%"	; Set workdir for the shortcuts
     ${If} ${SectionIsSelected} ${id_section_console}
-      CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim.lnk" "$0\vim.exe"
-      CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim Read-only.lnk" "$0\vim.exe" "-R"
-      CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim Diff.lnk" "$0\vim.exe" "-d"
+      CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim.lnk" "$INSTDIR\vim.exe"
+      CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim Read-only.lnk" "$INSTDIR\vim.exe" "-R"
+      CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim Diff.lnk" "$INSTDIR\vim.exe" "-d"
     ${EndIf}
-    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\gVim.lnk" "$0\gvim.exe"
-    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\gVim Easy.lnk" "$0\gvim.exe" "-y"
-    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\gVim Read-only.lnk" "$0\gvim.exe" "-R"
-    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\gVim Diff.lnk" "$0\gvim.exe" "-d"
-    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Help.lnk" "$0\gvim.exe" "-c h"
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\gVim.lnk" "$INSTDIR\gvim.exe"
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\gVim Easy.lnk" "$INSTDIR\gvim.exe" "-y"
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\gVim Read-only.lnk" "$INSTDIR\gvim.exe" "-R"
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\gVim Diff.lnk" "$INSTDIR\gvim.exe" "-d"
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Help.lnk" "$INSTDIR\gvim.exe" "-c h"
 
     SetOutPath $0   ; Set workdir for the shortcuts
     CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Uninstall.lnk" "$0\uninstall-gui.exe"
@@ -740,25 +740,25 @@ Section "$(str_section_edit_with)" id_section_editwith
   # Register context menu
   ${If} ${RunningX64}
     WriteRegStr SHCTX "Software\Classes\*\shellex\ContextMenuHandlers\gvim" "" "${GVIMEXT_CLSID}"
-    WriteRegStr SHCTX "Software\Vim\Gvim" "path" "$0\${PROGEXE}"
+    WriteRegStr SHCTX "Software\Vim\Gvim" "path" "$INSTDIR\${PROGEXE}"
   ${EndIf}
   !if ! ${ARM64}
     SetRegView 32
     WriteRegStr SHCTX "Software\Classes\*\shellex\ContextMenuHandlers\gvim" "" "${GVIMEXT_CLSID}"
-    WriteRegStr SHCTX "Software\Vim\Gvim" "path" "$0\${PROGEXE}"
+    WriteRegStr SHCTX "Software\Vim\Gvim" "path" "$INSTDIR\${PROGEXE}"
     SetRegView lastused
   !endif
 
   # Register openwith
   ${If} ${RunningX64}
-    WriteRegStr SHCTX "Software\Classes\Applications\gvim.exe\shell\edit\command" "" '"$0\${PROGEXE}" "%1"'
+    WriteRegStr SHCTX "Software\Classes\Applications\gvim.exe\shell\edit\command" "" '"$INSTDIR\${PROGEXE}" "%1"'
     WriteRegStr SHCTX "Software\Classes\.htm\OpenWithList\gvim.exe" "" ""
     WriteRegStr SHCTX "Software\Classes\.vim\OpenWithList\gvim.exe" "" ""
     WriteRegStr SHCTX "Software\Classes\*\OpenWithList\gvim.exe" "" ""
   ${EndIf}
   !if ! ${ARM64}
     SetRegView 32
-    WriteRegStr SHCTX "Software\Classes\Applications\gvim.exe\shell\edit\command" "" '"$0\${PROGEXE}" "%1"'
+    WriteRegStr SHCTX "Software\Classes\Applications\gvim.exe\shell\edit\command" "" '"$INSTDIR\${PROGEXE}" "%1"'
     WriteRegStr SHCTX "Software\Classes\.htm\OpenWithList\gvim.exe" "" ""
     WriteRegStr SHCTX "Software\Classes\.vim\OpenWithList\gvim.exe" "" ""
     WriteRegStr SHCTX "Software\Classes\*\OpenWithList\gvim.exe" "" ""
@@ -922,20 +922,22 @@ Section "$(str_section_nls)" id_section_nls
 
   SetOutPath $0\lang
   File /r /x Makefile ${VIMRT}\lang\*.*
-  SetOutPath $0
+
+  SetOutPath $INSTDIR
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED \
-      "${VIMBIN}\libintl-8.dll" "$0\libintl-8.dll" "$0"
+      "${VIMBIN}\libintl-8.dll" "$INSTDIR\libintl-8.dll" "$INSTDIR"
   !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED \
-      "${VIMBIN}\libiconv-2.dll" "$0\libiconv-2.dll" "$0"
+      "${VIMBIN}\libiconv-2.dll" "$INSTDIR\libiconv-2.dll" "$INSTDIR"
   # Install libgcc_s_sjlj-1.dll only if it is needed.
   !if ${INCLUDE_LIBGCC}
     !if /FileExists "${VIMBIN}\libgcc_s_sjlj-1.dll"
       !insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED \
 	  "${VIMBIN}\libgcc_s_sjlj-1.dll" \
-	  "$0\libgcc_s_sjlj-1.dll" "$0"
+	  "$INSTDIR\libgcc_s_sjlj-1.dll" "$INSTDIR"
     !endif
   !endif
 
+  SetOutPath $0
   ${If} ${SectionIsSelected} ${id_section_editwith}
     ${If} ${RunningX64}
       # Install DLLs for 64-bit gvimext.dll into the GvimExt64 directory.
@@ -998,8 +1000,8 @@ Section -post
 
   # Register uninstall information
   !insertmacro MULTIUSER_RegistryAddInstallInfo
-  # Overwrite and add some settings
-  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}" "DisplayIcon" "$0\gvim.exe"
+  # Add some settings
+  #WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}" "DisplayIcon" "$INSTDIR\gvim.exe"
   WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}" "EstimatedSize" $3
   WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}" "AllowSilent" 1
 
@@ -1293,7 +1295,7 @@ Section "un.$(str_unsection_register)" id_unsection_register
   ${Else}
     EnVar::SetHKCU
   ${EndIf}
-  EnVar::DeleteValue "PATH" $0
+  EnVar::DeleteValue "PATH" $INSTDIR
 
   # Delete uninstall key
   DeleteRegKey SHCTX "${UNINST_REG_KEY_VIM}"
@@ -1305,25 +1307,25 @@ Section "un.$(str_unsection_exe)" id_unsection_exe
 
   # OLE
   ${If} $MultiUser.InstallMode == "AllUsers"
-    ExecShellWait "" "$0\gvim.exe" "-silent -register" SW_HIDE
+    ExecShellWait "" "$INSTDIR\gvim.exe" "-silent -unregister" SW_HIDE
   ${EndIf}
 
   # Delete gettext and iconv DLLs
-  ${If} ${FileExists} "$0\libiconv-2.dll"
+  ${If} ${FileExists} "$INSTDIR\libiconv-2.dll"
     !insertmacro UninstallLib DLL NOTSHARED REBOOT_NOTPROTECTED \
-	"$0\libiconv-2.dll"
+	"$INSTDIR\libiconv-2.dll"
   ${EndIf}
-  ${If} ${FileExists} "$0\libintl-8.dll"
+  ${If} ${FileExists} "$INSTDIR\libintl-8.dll"
     !insertmacro UninstallLib DLL NOTSHARED REBOOT_NOTPROTECTED \
-	"$0\libintl-8.dll"
+	"$INSTDIR\libintl-8.dll"
   ${EndIf}
-  ${If} ${FileExists} "$0\libgcc_s_sjlj-1.dll"
+  ${If} ${FileExists} "$INSTDIR\libgcc_s_sjlj-1.dll"
     !insertmacro UninstallLib DLL NOTSHARED REBOOT_NOTPROTECTED \
-	"$0\libgcc_s_sjlj-1.dll"
+	"$INSTDIR\libgcc_s_sjlj-1.dll"
   ${EndIf}
 
   # Delete other DLLs
-  Delete /REBOOTOK $0\*.dll
+  Delete /REBOOTOK $INSTDIR\*.dll
 
   # Delete 64-bit GvimExt
   ${If} ${RunningX64}
@@ -1389,6 +1391,7 @@ Section "un.$(str_unsection_exe)" id_unsection_exe
   RMDir /r $0\lang
   RMDir /r $0\keymap
   RMDir /r $0\bitmaps
+  Delete $INSTDIR\*.exe
   Delete $0\*.exe
   Delete $0\*.bat
   Delete $0\*.vim
