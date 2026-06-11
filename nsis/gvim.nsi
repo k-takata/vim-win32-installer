@@ -152,7 +152,7 @@ ManifestSupportedOS \
 !define UNINST_REG_KEY	      "Software\Microsoft\Windows\CurrentVersion\Uninstall"
 !define UNINST_REG_KEY_VIM    "${UNINST_REG_KEY}\${PRODUCT_AND_VER}"
 !define GVIMEXT_CLSID	      "{51EEE242-AD87-11d3-9C1E-0090278BBD99}"
-!define VIMRUNTIME_DIR_NAME   "vim${VER_MAJOR}${VER_MINOR}"
+!define VIMRUNTIME_DIR_NAME   "runtime"
 !define UNINSTALL_FILENAME    "${VIMRUNTIME_DIR_NAME}\uninstall-gui.exe"
 
 ; NsisMultiUser optional defines
@@ -422,10 +422,10 @@ Function LaunchApplication
   !define SWP_NOZORDER 0x0004
   System::Call "User32::SetWindowPos(i, i, i, i, i, i, i) b ($HWNDPARENT, 0, -1000, -1000, 0, 0, ${SWP_NOZORDER}|${SWP_NOSIZE})"
 
-  ${If} ${FileExists} "$0\$(vim_readme_file)"
-    !insertmacro UAC_AsUser_ExecShell "" "$INSTDIR\${PROGEXE}" '-R "$0\$(vim_readme_file)"' "" ""
+  ${If} ${FileExists} "$INSTDIR\lang\$(vim_readme_file)"
+    !insertmacro UAC_AsUser_ExecShell "" "$INSTDIR\${PROGEXE}" '-R "$INSTDIR\lang\$(vim_readme_file)"' "" ""
   ${Else}
-    !insertmacro UAC_AsUser_ExecShell "" "$INSTDIR\${PROGEXE}" '-R "$0\README.txt"' "" ""
+    !insertmacro UAC_AsUser_ExecShell "" "$INSTDIR\${PROGEXE}" '-R "$INSTDIR\README.txt"' "" ""
   ${EndIf}
 FunctionEnd
 
@@ -520,8 +520,6 @@ Section "$(str_section_exe)" id_section_exe
 
   File ${SRC}\vimtutor.bat
 
-  # Runtime files
-  SetOutPath $0
   File ${SRC}\README.txt
   !if /FileExists "${SRC}\LICENSE"
     File /oname=LICENSE.txt ${SRC}\LICENSE
@@ -529,6 +527,9 @@ Section "$(str_section_exe)" id_section_exe
     File /oname=LICENSE.txt ${SRC}\LICENSE.txt
   !endif
   File ${SRC}\uninstall.txt
+
+  # Runtime files
+  SetOutPath $0
   File ${VIMRT}\*.vim
 
   SetOutPath $0\colors
@@ -900,27 +901,16 @@ SectionGroupEnd
 Section "$(str_section_nls)" id_section_nls
   SectionIn 1 3
 
-  SetOutPath $INSTDIR
+  SetOutPath $INSTDIR\lang
   !if /FileExists "${SRC}\lang\README.*.txt"
     File ${SRC}\lang\README.*.txt
-    CopyFiles /SILENT /FILESONLY $INSTDIR\README.$lng_usr.txt \
-	$0\README.$lng_usr.txt
-    Delete $INSTDIR\README.*.txt
   !endif
-  StrCpy $R7 0
   !if /FileExists "${SRC}\lang\LICENSE.??.txt"
     File ${SRC}\lang\LICENSE.??.txt
-    IntOp $R7 $R7 + 1
   !endif
   !if /FileExists "${SRC}\lang\LICENSE.??_??.txt"
     File ${SRC}\lang\LICENSE.??_??.txt
-    IntOp $R7 $R7 + 1
   !endif
-  ${If} $R7 > 0
-    CopyFiles /SILENT /FILESONLY $INSTDIR\LICENSE.$lng_usr.txt \
-	$0\LICENSE.$lng_usr.txt
-    Delete $INSTDIR\LICENSE.*.txt
-  ${EndIf}
 
   SetOutPath $0\lang
   File /r /x Makefile ${VIMRT}\lang\*.*
@@ -1031,7 +1021,7 @@ Function .onInit
     !insertmacro MUI_LANGDLL_DISPLAY
   ${EndIf}
 
-  call GetUserLocale
+  #call GetUserLocale
 
   ${If} $INSTDIR == ${DEFAULT_INSTDIR}
     # Check $VIM
@@ -1071,7 +1061,7 @@ Function .onInit
   !insertmacro LoadDefaultVimrc $vim_mouse_stat  "vim_mouse"    "default"
 
   # User variables:
-  # $0 - holds the directory the executables are installed to
+  # $0 - holds the directory the runtime files are installed to
   StrCpy $0 "$INSTDIR\${VIMRUNTIME_DIR_NAME}"
 FunctionEnd
 
@@ -1393,12 +1383,17 @@ Section "un.$(str_unsection_exe)" id_unsection_exe
   RMDir /r $0\lang
   RMDir /r $0\keymap
   RMDir /r $0\bitmaps
-  Delete $INSTDIR\*.exe
-  Delete $INSTDIR\vimtutor.bat
   Delete $0\*.exe
   Delete $0\*.bat
   Delete $0\*.vim
   Delete $0\*.txt
+
+  RMDir /r $INSTDIR\lang
+  Delete $INSTDIR\*.exe
+  Delete $INSTDIR\vimtutor.bat
+  Delete $INSTDIR\README.txt
+  Delete $INSTDIR\LICENSE.txt
+  Delete $INSTDIR\uninstall.txt
 
   ${If} ${Errors}
     MessageBox MB_OK|MB_ICONEXCLAMATION $(str_msg_rm_exe_fail) /SD IDOK
