@@ -685,7 +685,7 @@ SectionGroup $(str_group_icons) id_group_icons
     CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\gVim Diff.lnk" "$INSTDIR\gvim.exe" "-d"
     CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Help.lnk" "$INSTDIR\gvim.exe" "-c h"
 
-    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim tutor.lnk" "$INSTDIR\vimtutor.bat"
+    CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Vim tutor.lnk" "$INSTDIR\vimtutor.bat" "" "" "" SW_SHOWMINIMIZED
 
     SetOutPath $0   ; Set workdir for the shortcuts
     CreateShortCut "$SMPROGRAMS\${PRODUCT_AND_VER}\Uninstall.lnk" "$0\uninstall-gui.exe"
@@ -1394,7 +1394,7 @@ Section "un.$(str_unsection_exe)" id_unsection_exe
   RMDir /r $0\keymap
   RMDir /r $0\bitmaps
   Delete $INSTDIR\*.exe
-  Delete $INSTDIR\*.bat
+  Delete $INSTDIR\vimtutor.bat
   Delete $0\*.exe
   Delete $0\*.bat
   Delete $0\*.vim
