@@ -415,12 +415,12 @@ FunctionEnd
 Function LaunchApplication
   SetOutPath $INSTDIR
 
+  ; The installer might exit too soon before the application starts and it
+  ; loses the right to be the foreground window and starts in the background
+  ; however, if there's no active window when the application starts, it will
+  ; become the active window, so we hide the installer
+  HideWindow
   ${If} ${UAC_IsInnerInstance}
-    ; The installer might exit too soon before the application starts and it
-    ; loses the right to be the foreground window and starts in the background
-    ; however, if there's no active window when the application starts, it will
-    ; become the active window, so we hide the installer
-    HideWindow
     ; The installer will show itself again quickly before closing (w/o Taskbar
     ; button), we move it offscreen
     !define SWP_NOSIZE 0x0001
