@@ -150,7 +150,7 @@ ManifestSupportedOS \
 !define INSTMODE_REG_VALNAME  "mode"
 !define INSTLANG_REG_VALNAME  "Installer Language"
 !define UNINST_REG_KEY	      "Software\Microsoft\Windows\CurrentVersion\Uninstall"
-!define UNINST_REG_KEY_NAME   "Vim for windows"	  # Must start with "Vim " for compatibility
+!define UNINST_REG_KEY_NAME   "${PRODUCT_NAME}"
 !define UNINST_REG_KEY_VIM    "${UNINST_REG_KEY}\${UNINST_REG_KEY_NAME}"
 !define GVIMEXT_CLSID	      "{51EEE242-AD87-11d3-9C1E-0090278BBD99}"
 !define VIMRUNTIME_DIR_NAME   "runtime"	  # "vim${VER_MAJOR}${VER_MINOR}"
@@ -353,7 +353,8 @@ Function FindOldUninstaller
 
     # Check if the key is Vim uninstall key or not:
     StrCpy $R2 $R1 4
-    ${If} $R2 S!= "Vim "
+    ${If} $R1 S!= "Vim"
+    ${AndIf} $R2 S!= "Vim "  # For old versions
       ${Continue}
     ${EndIf}
 
@@ -1076,12 +1077,9 @@ Function PageComponentsPre
     SectionSetInstTypes ${id_section_old_ver} 0
     SectionSetText ${id_section_old_ver} ""
   ${Else}
-    #${If} $INSTDIR == ${DEFAULT_INSTDIR}
-    #  StrCpy $INSTDIR $3
-    #${EndIf}
-    !insertmacro SelectSection ${id_section_old_ver}
-    SectionSetInstTypes ${id_section_old_ver} 7
-    SectionSetText ${id_section_old_ver} $(str_desc_old_ver)
+    #!insertmacro SelectSection ${id_section_old_ver}
+    #SectionSetInstTypes ${id_section_old_ver} 7
+    #SectionSetText ${id_section_old_ver} $(str_desc_old_ver)
   ${EndIf}
 
   !insertmacro MULTIUSER_GetCurrentUserString $4
