@@ -3,5 +3,6 @@
 *.swp
 *~
 
-/vim/
+/EnVar_plugin/
 /NsisMultiUser/
+/vim/

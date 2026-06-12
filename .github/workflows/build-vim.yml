@@ -797,14 +797,7 @@ jobs:
         )
 
         rem Install EnVar Plugin
-        7z.exe x -y downloads\EnVar_plugin.zip -o%DEPENDENCIES%\EnVar_plugin > nul || exit 1
-
-        rem set INST=vim-installer-${{ matrix.arch }}
-        rem set DEST_INST=%INST%\vim\%VIM_DIR%
-        rem robocopy package\%PKG% package\%INST% /E /NP /NFL /NDL
-        rem if ERRORLEVEL 8 exit 1
-        rem robocopy vim\src\GvimExt package\%DEST_INST%\GvimExt /E /NP /NFL /NDL
-        rem if ERRORLEVEL 8 exit 1
+        7z.exe x -y downloads\EnVar_plugin.zip -o.\EnVar_plugin > nul || exit 1
 
         rem Create license files for nsis
         call msys2 scripts/create_nsis_lic_files.sh ./vim
@@ -820,7 +813,7 @@ jobs:
         set BASENAME=gvim_${{ steps.patchlevel.outputs.ver }}_${{ matrix.arch }}
 
         set PLUG_NSISMULTIUSER=..\NsisMultiUser
-        set PLUG_ENVAR=%DEPENDENCIES%\EnVar_plugin
+        set PLUG_ENVAR=..\EnVar_plugin
 
         "%ProgramFiles(x86)%\NSIS\makensis" ^
           /INPUTCHARSET UTF8 ^
