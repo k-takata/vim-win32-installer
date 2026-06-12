@@ -396,14 +396,16 @@ Function CheckOldVim
 
   call FindOldUninstaller
   Pop $0
-  StrCpy $1 $0 1
-  ${If} $1 == '"'
-    StrCpy $0 $0 "" 1	      # Cut the first '"'
-    ${StrLoc} $1 $0 '"' ">"   # Find the next '"'
-    StrCpy $0 $0 $1	      # Extract inside quotes
+  ${If} $0 != ""
+    StrCpy $1 $0 1
+    ${If} $1 == '"'
+      StrCpy $0 $0 "" 1	      # Cut the first '"'
+      ${StrLoc} $1 $0 '"' ">" # Find the next '"'
+      StrCpy $0 $0 $1	      # Extract inside quotes
+    ${EndIf}
+    ${GetParent} $0 $0
+    ${GetParent} $0 $0
   ${EndIf}
-  ${GetParent} $0 $0
-  ${GetParent} $0 $0
 
   Pop $1
   Exch $0  ; put $0 on top of stack, restore $0 to original value
