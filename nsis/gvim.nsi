@@ -156,7 +156,7 @@ ManifestSupportedOS \
 !define UNINSTALL_FILENAME    "${VIMRUNTIME_DIR_NAME}\uninstall-gui.exe"
 
 ; NsisMultiUser optional defines
-!define MULTIUSER_INSTALLMODE_ALLOW_BOTH_INSTALLATIONS 0
+!define MULTIUSER_INSTALLMODE_ALLOW_BOTH_INSTALLATIONS 1
 !define MULTIUSER_INSTALLMODE_ALLOW_ELEVATION 1
 !define MULTIUSER_INSTALLMODE_ALLOW_ELEVATION_IF_SILENT 1 ; required for silent-mode allusers-uninstall to work, when using the workaround for Windows elevation bug
 !define MULTIUSER_INSTALLMODE_DEFAULT_ALLUSERS 1
@@ -994,8 +994,9 @@ Section -post
   # Register uninstall information
   !insertmacro MULTIUSER_RegistryAddInstallInfo
   # Add some settings
-  WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}" "EstimatedSize" $3
-  WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}" "AllowSilent" 1
+  !insertmacro MULTIUSER_GetCurrentUserString $4
+  WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}$4" "EstimatedSize" $3
+  WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}$4" "AllowSilent" 1
 
   # Store the selections to the registry.
   !insertmacro SaveSectionSelection ${id_section_console}    "select_console"
