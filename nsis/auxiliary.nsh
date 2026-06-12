@@ -89,18 +89,18 @@
   !insertmacro GetHomeDir "un."
 
 # Saving the status of sections of the current installation in the registry
-  !macro SaveSectionSelection section_id reg_value
+  !macro SaveSectionSelection suffix section_id reg_value
     ${If} ${SectionIsSelected} ${section_id}
-      WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}" ${reg_value} 1
+      WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}${suffix}" ${reg_value} 1
     ${Else}
-      WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}" ${reg_value} 0
+      WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}${suffix}" ${reg_value} 0
     ${EndIf}
   !macroend
 
 # Reading the status of sections from the registry of the previous installation
-  !macro LoadSectionSelection section_id reg_value
+  !macro LoadSectionSelection suffix section_id reg_value
     ClearErrors
-    ReadRegDWORD $3 SHCTX "${UNINST_REG_KEY_VIM}" ${reg_value}
+    ReadRegDWORD $3 SHCTX "${UNINST_REG_KEY_VIM}${suffix}" ${reg_value}
     ${IfNot} ${Errors}
       ${If} $3 <> 0
 	!insertmacro SelectSection ${section_id}
@@ -111,9 +111,9 @@
   !macroend
 
 # Reading the settings for _vimrc from the registry of a previous installation
-  !macro LoadDefaultVimrc out_var reg_value default_value
+  !macro LoadDefaultVimrc suffix out_var reg_value default_value
     ClearErrors
-    ReadRegStr ${out_var} SHCTX "${UNINST_REG_KEY_VIM}" ${reg_value}
+    ReadRegStr ${out_var} SHCTX "${UNINST_REG_KEY_VIM}${suffix}" ${reg_value}
     ${If} ${Errors}
     ${OrIf} ${out_var} == ""
       StrCpy ${out_var} ${default_value}

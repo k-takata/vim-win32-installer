@@ -775,9 +775,10 @@ SectionEnd
 Section "$(str_section_vim_rc)" id_section_vimrc
   SectionIn 1 3
 
-  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}" "vim_compat"   "$vim_compat_stat"
-  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}" "vim_keyremap" "$vim_keymap_stat"
-  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}" "vim_mouse"    "$vim_mouse_stat"
+  !insertmacro MULTIUSER_GetCurrentUserString $4
+  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}$4" "vim_compat"   "$vim_compat_stat"
+  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}$4" "vim_keyremap" "$vim_keymap_stat"
+  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}$4" "vim_mouse"    "$vim_mouse_stat"
 
   ${IfNot} ${FileExists} $INSTDIR/_vimrc
   ${AndIfNot} ${FileExists} $INSTDIR/.vimrc
@@ -1000,16 +1001,16 @@ Section -post
   WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}$4" "AllowSilent" 1
 
   # Store the selections to the registry.
-  !insertmacro SaveSectionSelection ${id_section_console}    "select_console"
-  !insertmacro SaveSectionSelection ${id_section_launcher}   "select_launcher"
-  !insertmacro SaveSectionSelection ${id_section_addpath}    "select_addpath"
-  !insertmacro SaveSectionSelection ${id_section_desktop}    "select_desktop"
-  !insertmacro SaveSectionSelection ${id_section_startmenu}  "select_startmenu"
-  !insertmacro SaveSectionSelection ${id_section_editwith}   "select_editwith"
-  !insertmacro SaveSectionSelection ${id_section_vimrc}      "select_vimrc"
-  !insertmacro SaveSectionSelection ${id_section_pluginhome} "select_pluginhome"
-  !insertmacro SaveSectionSelection ${id_section_pluginvim}  "select_pluginvim"
-  !insertmacro SaveSectionSelection ${id_section_nls}        "select_nls"
+  !insertmacro SaveSectionSelection $4 ${id_section_console}    "select_console"
+  !insertmacro SaveSectionSelection $4 ${id_section_launcher}   "select_launcher"
+  !insertmacro SaveSectionSelection $4 ${id_section_addpath}    "select_addpath"
+  !insertmacro SaveSectionSelection $4 ${id_section_desktop}    "select_desktop"
+  !insertmacro SaveSectionSelection $4 ${id_section_startmenu}  "select_startmenu"
+  !insertmacro SaveSectionSelection $4 ${id_section_editwith}   "select_editwith"
+  !insertmacro SaveSectionSelection $4 ${id_section_vimrc}      "select_vimrc"
+  !insertmacro SaveSectionSelection $4 ${id_section_pluginhome} "select_pluginhome"
+  !insertmacro SaveSectionSelection $4 ${id_section_pluginvim}  "select_pluginvim"
+  !insertmacro SaveSectionSelection $4 ${id_section_nls}        "select_nls"
 
   BringToFront
 SectionEnd
@@ -1046,21 +1047,22 @@ Function .onInit
     ${EndIf}
   ${EndIf}
 
+  !insertmacro MULTIUSER_GetCurrentUserString $4
   # Load the selections from the registry (if any).
-  !insertmacro LoadSectionSelection ${id_section_console}    "select_console"
-  !insertmacro LoadSectionSelection ${id_section_launcher}   "select_launcher"
-  !insertmacro LoadSectionSelection ${id_section_addpath}    "select_addpath"
-  !insertmacro LoadSectionSelection ${id_section_desktop}    "select_desktop"
-  !insertmacro LoadSectionSelection ${id_section_startmenu}  "select_startmenu"
-  !insertmacro LoadSectionSelection ${id_section_editwith}   "select_editwith"
-  !insertmacro LoadSectionSelection ${id_section_vimrc}      "select_vimrc"
-  !insertmacro LoadSectionSelection ${id_section_pluginhome} "select_pluginhome"
-  !insertmacro LoadSectionSelection ${id_section_pluginvim}  "select_pluginvim"
-  !insertmacro LoadSectionSelection ${id_section_nls}        "select_nls"
+  !insertmacro LoadSectionSelection $4 ${id_section_console}    "select_console"
+  !insertmacro LoadSectionSelection $4 ${id_section_launcher}   "select_launcher"
+  !insertmacro LoadSectionSelection $4 ${id_section_addpath}    "select_addpath"
+  !insertmacro LoadSectionSelection $4 ${id_section_desktop}    "select_desktop"
+  !insertmacro LoadSectionSelection $4 ${id_section_startmenu}  "select_startmenu"
+  !insertmacro LoadSectionSelection $4 ${id_section_editwith}   "select_editwith"
+  !insertmacro LoadSectionSelection $4 ${id_section_vimrc}      "select_vimrc"
+  !insertmacro LoadSectionSelection $4 ${id_section_pluginhome} "select_pluginhome"
+  !insertmacro LoadSectionSelection $4 ${id_section_pluginvim}  "select_pluginvim"
+  !insertmacro LoadSectionSelection $4 ${id_section_nls}        "select_nls"
   # Load the default _vimrc settings from the registry (if any).
-  !insertmacro LoadDefaultVimrc $vim_compat_stat "vim_compat"   "all"
-  !insertmacro LoadDefaultVimrc $vim_keymap_stat "vim_keyremap" "default"
-  !insertmacro LoadDefaultVimrc $vim_mouse_stat  "vim_mouse"    "default"
+  !insertmacro LoadDefaultVimrc $4 $vim_compat_stat "vim_compat"   "all"
+  !insertmacro LoadDefaultVimrc $4 $vim_keymap_stat "vim_keyremap" "default"
+  !insertmacro LoadDefaultVimrc $4 $vim_mouse_stat  "vim_mouse"    "default"
 
   # Parse command line
   ${GetParameters} $3
@@ -1309,7 +1311,8 @@ Section "un.$(str_unsection_register)" id_unsection_register
   EnVar::DeleteValue "PATH" $INSTDIR
 
   # Delete uninstall key
-  DeleteRegKey SHCTX "${UNINST_REG_KEY_VIM}"
+  #DeleteRegKey SHCTX "${UNINST_REG_KEY_VIM}"
+  !insertmacro MULTIUSER_RegistryRemoveInstallInfo
 SectionEnd
 
 Section "un.$(str_unsection_exe)" id_unsection_exe
