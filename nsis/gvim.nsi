@@ -126,7 +126,7 @@ ManifestSupportedOS \
   !define BIT 64
 # This adds '\Vim' to the user choice automagically.  The actual value is
 # obtained below with CheckOldVim.
-  !define DEFAULT_INSTDIR "$PROGRAMFILES64\Vim"
+  #!define DEFAULT_INSTDIR "$PROGRAMFILES64\Vim"
   !if ${ARM64}
     !define PLATFORM  "ARM64"
   !else
@@ -134,7 +134,7 @@ ManifestSupportedOS \
   !endif
 !else
   !define BIT 32
-  !define DEFAULT_INSTDIR "$PROGRAMFILES\Vim"
+  #!define DEFAULT_INSTDIR "$PROGRAMFILES\Vim"
   !define PLATFORM  "x86"
 !endif
 
@@ -1028,12 +1028,44 @@ Function .onInit
 
   #call GetUserLocale
 
-  ${If} $INSTDIR == ${DEFAULT_INSTDIR}
-    # Check $VIM
-    ReadEnvStr $3 "VIM"
-    ${If} $3 != ""
-      StrCpy $INSTDIR $3
-    ${EndIf}
+  # Stop checking $VIM. The /D=path option should be used.
+  #${If} $INSTDIR == ${DEFAULT_INSTDIR}
+  #  # Check $VIM
+  #  ReadEnvStr $3 "VIM"
+  #  ${If} $3 != ""
+  #    StrCpy $INSTDIR $3
+  #  ${EndIf}
+  #${EndIf}
+
+  # User variables:
+  # $0 - holds the directory the runtime files are installed to
+  StrCpy $0 "$INSTDIR\${VIMRUNTIME_DIR_NAME}"
+FunctionEnd
+
+Function .onInstSuccess
+FunctionEnd
+
+Function .onInstFailed
+  MessageBox MB_OK|MB_ICONEXCLAMATION "$(str_msg_install_fail)" /SD IDOK
+FunctionEnd
+
+Function PageWelcomeLicensePre
+  ${If} $InstallShowPagesBeforeComponents = 0
+    Abort ; don't display the Welcome and License pages
+  ${EndIf}
+FunctionEnd
+
+Function PageComponentsPre
+  ${If} $MultiUser.InstallMode == "CurrentUser"
+    # Unselect and hide Vim launcher
+    !insertmacro UnselectSection ${id_section_launcher}
+    SectionSetInstTypes ${id_section_launcher} 0
+    SectionSetText ${id_section_launcher} ""
+
+    # Unselect and hide creating plugin directories in the vim directory
+    !insertmacro UnselectSection ${id_section_pluginvim}
+    SectionSetInstTypes ${id_section_pluginvim} 0
+    SectionSetText ${id_section_pluginvim} ""
   ${EndIf}
 
   call CheckOldVim
@@ -1044,9 +1076,12 @@ Function .onInit
     SectionSetInstTypes ${id_section_old_ver} 0
     SectionSetText ${id_section_old_ver} ""
   ${Else}
-    ${If} $INSTDIR == ${DEFAULT_INSTDIR}
-      StrCpy $INSTDIR $3
-    ${EndIf}
+    #${If} $INSTDIR == ${DEFAULT_INSTDIR}
+    #  StrCpy $INSTDIR $3
+    #${EndIf}
+    !insertmacro SelectSection ${id_section_old_ver}
+    SectionSetInstTypes ${id_section_old_ver} 7
+    SectionSetText ${id_section_old_ver} $(str_desc_old_ver)
   ${EndIf}
 
   !insertmacro MULTIUSER_GetCurrentUserString $4
@@ -1082,37 +1117,6 @@ Function .onInit
   ${GetOptions} $3 "/keymap=" $vim_keymap_stat
   ${GetOptions} $3 "/mouse="  $vim_mouse_stat
   ClearErrors
-
-  # User variables:
-  # $0 - holds the directory the runtime files are installed to
-  StrCpy $0 "$INSTDIR\${VIMRUNTIME_DIR_NAME}"
-FunctionEnd
-
-Function .onInstSuccess
-FunctionEnd
-
-Function .onInstFailed
-  MessageBox MB_OK|MB_ICONEXCLAMATION "$(str_msg_install_fail)" /SD IDOK
-FunctionEnd
-
-Function PageWelcomeLicensePre
-  ${If} $InstallShowPagesBeforeComponents = 0
-    Abort ; don't display the Welcome and License pages
-  ${EndIf}
-FunctionEnd
-
-Function PageComponentsPre
-  ${If} $MultiUser.InstallMode == "CurrentUser"
-    # Unselect and hide Vim launcher
-    !insertmacro UnselectSection ${id_section_launcher}
-    SectionSetInstTypes ${id_section_launcher} 0
-    SectionSetText ${id_section_launcher} ""
-
-    # Unselect and hide creating plugin directories in the vim directory
-    !insertmacro UnselectSection ${id_section_pluginvim}
-    SectionSetInstTypes ${id_section_pluginvim} 0
-    SectionSetText ${id_section_pluginvim} ""
-  ${EndIf}
 FunctionEnd
 
 ##########################################################
