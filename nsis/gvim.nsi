@@ -493,11 +493,11 @@ Section "$(str_section_exe)" id_section_exe
   # Create hard links
   ReadEnvStr $3 "COMSPEC"
   nsExec::Exec '"$3" /c mklink /h gview.exe gvim.exe'
-  pop $4
+  Pop $4
   nsExec::Exec '"$3" /c mklink /h gvimdiff.exe gvim.exe'
-  pop $4
+  Pop $4
   nsExec::Exec '"$3" /c mklink /h evim.exe gvim.exe'
-  pop $4
+  Pop $4
 
   !if /FileExists "${VIMTOOLS}\diff.exe"
     File ${VIMTOOLS}\diff.exe
@@ -596,9 +596,9 @@ Section "$(str_section_console)" id_section_console
   # Create hard links
   ReadEnvStr $3 "COMSPEC"
   nsExec::Exec '"$3" /c mklink /h view.exe vim.exe'
-  pop $4
+  Pop $4
   nsExec::Exec '"$3" /c mklink /h vimdiff.exe vim.exe'
-  pop $4
+  Pop $4
 SectionEnd
 
 ##########################################################
@@ -613,20 +613,20 @@ SectionGroup $(str_group_cmdline) id_group_cmdline
     # Create hard links
     ReadEnvStr $3 "COMSPEC"
     nsExec::Exec '"$3" /c mklink /h gview.exe gvim.exe'
-    pop $4
+    Pop $4
     nsExec::Exec '"$3" /c mklink /h gvimdiff.exe gvim.exe'
-    pop $4
+    Pop $4
     nsExec::Exec '"$3" /c mklink /h evim.exe gvim.exe'
-    pop $4
+    Pop $4
 
     ${If} ${SectionIsSelected} ${id_section_console}
       File ${VIMLAUNCHER}\vim.exe
 
       # Create hard links
       nsExec::Exec '"$3" /c mklink /h view.exe vim.exe'
-      pop $4
+      Pop $4
       nsExec::Exec '"$3" /c mklink /h vimdiff.exe vim.exe'
-      pop $4
+      Pop $4
     ${EndIf}
 
     # Register the path in case the editwith menu is not installed.
