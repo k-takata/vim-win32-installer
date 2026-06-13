@@ -38,34 +38,6 @@
   !macroend
   !define DirExists `"" DirExists`
 
-!if 0
-# Get parent directory
-# Share this function both on installer and uninstaller
-  !macro GetParent un
-    Function ${un}GetParent
-      Exch $0  ; old $0 is on top of stack
-      Push $1
-      Push $2
-      StrCpy $1 -1
-      ${Do}
-	StrCpy $2 $0 1 $1
-	${If} $2 == ""
-	${OrIf} $2 == "\"
-	  ${ExitDo}
-	${EndIf}
-	IntOp $1 $1 - 1
-      ${Loop}
-      StrCpy $0 $0 $1
-      Pop $2
-      Pop $1
-      Exch $0  ; put $0 on top of stack, restore $0 to original value
-    FunctionEnd
-  !macroend
-
-  !insertmacro GetParent ""
-  !insertmacro GetParent "un."
-!endif
-
 # Get home directory
   !macro GetHomeDir un
     Function ${un}GetHomeDir
@@ -132,28 +104,6 @@
       ${EndIf}
     ${EndIf}
   !macroend
-
-# Get user locale
-!if 0
-  Var lng_usr  ; variable containing the locale of the current user
-
-  !include "StrFunc.nsh"
-  #${StrRep}
-
-  Function GetUserLocale
-    ClearErrors
-    System::Call \
-	'kernel32::GetUserDefaultLocaleName(t.r19, *i${NSIS_MAX_STRLEN})'
-    ${If} $R9 == "zh-cn"
-    ${OrIf} $R9 == "zh-tw"
-    ${OrIf} $R9 == "pt-br"
-      System::Call 'User32::CharLower(t r19 r19)*i${NSIS_MAX_STRLEN}'
-      ${StrRep} $lng_usr "$R9" "-" "_"
-    ${Else}
-      StrCpy $lng_usr $R9 2
-    ${EndIf}
-  FunctionEnd
-!endif
 
 
 !endif # __AUXILIARY__NSH__
