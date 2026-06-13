@@ -124,9 +124,6 @@ ManifestSupportedOS \
 
 !if ${WIN64}
   !define BIT 64
-# This adds '\Vim' to the user choice automagically.  The actual value is
-# obtained below with CheckOldVim.
-  #!define DEFAULT_INSTDIR "$PROGRAMFILES64\Vim"
   !if ${ARM64}
     !define PLATFORM  "ARM64"
   !else
@@ -134,7 +131,6 @@ ManifestSupportedOS \
   !endif
 !else
   !define BIT 32
-  #!define DEFAULT_INSTDIR "$PROGRAMFILES\Vim"
   !define PLATFORM  "x86"
 !endif
 
@@ -165,20 +161,10 @@ ManifestSupportedOS \
   !define MULTIUSER_INSTALLMODE_64_BIT 1
 !endif
 !define MULTIUSER_INSTALLMODE_DISPLAYNAME "${PRODUCT_FULL}"
-
-!define MULTIUSER_INSTALLMODE_COMMANDLINE
-;!define MULTIUSER_INSTALLMODE_INSTDIR "${PRODUCT}"   ; Set later
-!define MULTIUSER_INSTALLMODE_UNINSTALL_REGISTRY_KEY	  "${UNINST_REG_KEY_NAME}"
-#!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY	  "${PRODUCT_REG_KEY}"
-#!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUENAME  "${INSTDIR_REG_VALNAME}"
-#!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY	  "${PRODUCT_REG_KEY}"
-#!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME  "${INSTMODE_REG_VALNAME}"
-#!define MULTIUSER_INSTALLMODE_FUNCTION InitInstDir
-#!define MULTIUSER_INSTALLMODE_CHANGE_MODE_FUNCTION PageInstallModeChangeMode
+!define MULTIUSER_INSTALLMODE_UNINSTALL_REGISTRY_KEY "${UNINST_REG_KEY_NAME}"
 
 Name "${PRODUCT_FULL}"
 OutFile gvim${VER_MAJOR}${VER_MINOR}.exe
-#InstallDir ${DEFAULT_INSTDIR}	  ; Set later
 BrandingText "Vim - The text editor"
 
 # Types of installs we can perform:
@@ -616,8 +602,8 @@ SectionGroup $(str_group_cmdline) id_group_cmdline
   Section "$(str_section_launcher)" id_section_launcher
     SectionIn 3
 
-    ExpandEnvStrings $3 "%SystemRoot%"  ; Normally "C:\WINDOWS"
-    SetOutPath $3
+    ExpandEnvStrings $5 "%SystemRoot%"  ; Normally "C:\WINDOWS"
+    SetOutPath $5
     File ${VIMLAUNCHER}\gvim.exe
 
     # Create hard links
@@ -639,6 +625,7 @@ SectionGroup $(str_group_cmdline) id_group_cmdline
       pop $4
     ${EndIf}
 
+    # Register the path in case the editwith menu is not installed.
     ${If} ${RunningX64}
       WriteRegStr SHCTX "Software\Vim\Gvim" "path" "$INSTDIR\${PROGEXE}"
     ${EndIf}
@@ -703,8 +690,6 @@ SectionGroupEnd
 ##########################################################
 Section "$(str_section_edit_with)" id_section_editwith
   SectionIn 1 3
-
-  SetOutPath $0
 
   ${If} ${RunningX64}
     # Install 64-bit gvimext.dll into the GvimExt64 directory.
@@ -778,10 +763,10 @@ SectionEnd
 Section "$(str_section_vim_rc)" id_section_vimrc
   SectionIn 1 3
 
-  !insertmacro MULTIUSER_GetCurrentUserString $4
-  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}$4" "vim_compat"   "$vim_compat_stat"
-  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}$4" "vim_keyremap" "$vim_keymap_stat"
-  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}$4" "vim_mouse"    "$vim_mouse_stat"
+  !insertmacro MULTIUSER_GetCurrentUserString $5
+  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}$5" "vim_compat"   "$vim_compat_stat"
+  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}$5" "vim_keyremap" "$vim_keymap_stat"
+  WriteRegStr SHCTX "${UNINST_REG_KEY_VIM}$5" "vim_mouse"    "$vim_mouse_stat"
 
   ${IfNot} ${FileExists} $INSTDIR/_vimrc
   ${AndIfNot} ${FileExists} $INSTDIR/.vimrc
@@ -1030,17 +1015,6 @@ Function .onInit
 
   StrCpy $settings_loaded 0
 
-  #call GetUserLocale
-
-  # Stop checking $VIM. The /D=path option should be used.
-  #${If} $INSTDIR == ${DEFAULT_INSTDIR}
-  #  # Check $VIM
-  #  ReadEnvStr $3 "VIM"
-  #  ${If} $3 != ""
-  #    StrCpy $INSTDIR $3
-  #  ${EndIf}
-  #${EndIf}
-
   # User variables:
   # $0 - holds the directory the runtime files are installed to
   StrCpy $0 "$INSTDIR\${VIMRUNTIME_DIR_NAME}"
@@ -1073,6 +1047,7 @@ Function PageComponentsPre
   ${EndIf}
 
   ${If} $settings_loaded = 0
+    # Check old versions after the installation mode is selected.
     call CheckOldVim
     Pop $3
     ${If} $3 == ""
