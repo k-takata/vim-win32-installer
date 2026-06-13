@@ -633,7 +633,6 @@ SectionGroup $(str_group_cmdline) id_group_cmdline
       File ${VIMLAUNCHER}\vim.exe
 
       # Create hard links
-      ReadEnvStr $3 "COMSPEC"
       nsExec::Exec '"$3" /c mklink /h view.exe vim.exe'
       pop $4
       nsExec::Exec '"$3" /c mklink /h vimdiff.exe vim.exe'
@@ -881,8 +880,9 @@ SectionGroup $(str_group_plugin) id_group_plugin
     ReadEnvStr $3 "COMSPEC"
     Call GetHomeDir
     Pop $4
-    !insertmacro UAC_AsUser_ExecShell "" "$3" '/c "mkdir vimfiles \
-	& cd vimfiles & mkdir ${PLUG_DIR_LIST}"' "$4" SW_HIDE
+    !insertmacro UAC_AsUser_ExecShell "" "$3" \
+	'/c "mkdir vimfiles & cd vimfiles & mkdir ${PLUG_DIR_LIST}"' \
+	"$4" SW_HIDE
     # TODO: should we wait for the execution?
   SectionEnd
 
@@ -1000,21 +1000,21 @@ Section -post
   # Register uninstall information
   !insertmacro MULTIUSER_RegistryAddInstallInfo
   # Add some settings
-  !insertmacro MULTIUSER_GetCurrentUserString $4
-  WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}$4" "EstimatedSize" $3
-  WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}$4" "AllowSilent" 1
+  !insertmacro MULTIUSER_GetCurrentUserString $5
+  WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}$5" "EstimatedSize" $3
+  WriteRegDWORD SHCTX "${UNINST_REG_KEY_VIM}$5" "AllowSilent" 1
 
   # Store the selections to the registry.
-  !insertmacro SaveSectionSelection $4 ${id_section_console}    "select_console"
-  !insertmacro SaveSectionSelection $4 ${id_section_launcher}   "select_launcher"
-  !insertmacro SaveSectionSelection $4 ${id_section_addpath}    "select_addpath"
-  !insertmacro SaveSectionSelection $4 ${id_section_desktop}    "select_desktop"
-  !insertmacro SaveSectionSelection $4 ${id_section_startmenu}  "select_startmenu"
-  !insertmacro SaveSectionSelection $4 ${id_section_editwith}   "select_editwith"
-  !insertmacro SaveSectionSelection $4 ${id_section_vimrc}      "select_vimrc"
-  !insertmacro SaveSectionSelection $4 ${id_section_pluginhome} "select_pluginhome"
-  !insertmacro SaveSectionSelection $4 ${id_section_pluginvim}  "select_pluginvim"
-  !insertmacro SaveSectionSelection $4 ${id_section_nls}        "select_nls"
+  !insertmacro SaveSectionSelection $5 ${id_section_console}    "select_console"
+  !insertmacro SaveSectionSelection $5 ${id_section_launcher}   "select_launcher"
+  !insertmacro SaveSectionSelection $5 ${id_section_addpath}    "select_addpath"
+  !insertmacro SaveSectionSelection $5 ${id_section_desktop}    "select_desktop"
+  !insertmacro SaveSectionSelection $5 ${id_section_startmenu}  "select_startmenu"
+  !insertmacro SaveSectionSelection $5 ${id_section_editwith}   "select_editwith"
+  !insertmacro SaveSectionSelection $5 ${id_section_vimrc}      "select_vimrc"
+  !insertmacro SaveSectionSelection $5 ${id_section_pluginhome} "select_pluginhome"
+  !insertmacro SaveSectionSelection $5 ${id_section_pluginvim}  "select_pluginvim"
+  !insertmacro SaveSectionSelection $5 ${id_section_nls}        "select_nls"
 
   BringToFront
 SectionEnd
@@ -1086,38 +1086,38 @@ Function PageComponentsPre
       #SectionSetText ${id_section_old_ver} $(str_desc_old_ver)
     ${EndIf}
 
-    !insertmacro MULTIUSER_GetCurrentUserString $4
+    !insertmacro MULTIUSER_GetCurrentUserString $5
     # Load the selections from the registry (if any).
-    !insertmacro LoadSectionSelection $4 ${id_section_console}    "select_console"
-    !insertmacro LoadSectionSelection $4 ${id_section_launcher}   "select_launcher"
-    !insertmacro LoadSectionSelection $4 ${id_section_addpath}    "select_addpath"
-    !insertmacro LoadSectionSelection $4 ${id_section_desktop}    "select_desktop"
-    !insertmacro LoadSectionSelection $4 ${id_section_startmenu}  "select_startmenu"
-    !insertmacro LoadSectionSelection $4 ${id_section_editwith}   "select_editwith"
-    !insertmacro LoadSectionSelection $4 ${id_section_vimrc}      "select_vimrc"
-    !insertmacro LoadSectionSelection $4 ${id_section_pluginhome} "select_pluginhome"
-    !insertmacro LoadSectionSelection $4 ${id_section_pluginvim}  "select_pluginvim"
-    !insertmacro LoadSectionSelection $4 ${id_section_nls}        "select_nls"
+    !insertmacro LoadSectionSelection $5 ${id_section_console}    "select_console"
+    !insertmacro LoadSectionSelection $5 ${id_section_launcher}   "select_launcher"
+    !insertmacro LoadSectionSelection $5 ${id_section_addpath}    "select_addpath"
+    !insertmacro LoadSectionSelection $5 ${id_section_desktop}    "select_desktop"
+    !insertmacro LoadSectionSelection $5 ${id_section_startmenu}  "select_startmenu"
+    !insertmacro LoadSectionSelection $5 ${id_section_editwith}   "select_editwith"
+    !insertmacro LoadSectionSelection $5 ${id_section_vimrc}      "select_vimrc"
+    !insertmacro LoadSectionSelection $5 ${id_section_pluginhome} "select_pluginhome"
+    !insertmacro LoadSectionSelection $5 ${id_section_pluginvim}  "select_pluginvim"
+    !insertmacro LoadSectionSelection $5 ${id_section_nls}        "select_nls"
     # Load the default _vimrc settings from the registry (if any).
-    !insertmacro LoadDefaultVimrc $4 $vim_compat_stat "vim_compat"   "all"
-    !insertmacro LoadDefaultVimrc $4 $vim_keymap_stat "vim_keyremap" "default"
-    !insertmacro LoadDefaultVimrc $4 $vim_mouse_stat  "vim_mouse"    "default"
+    !insertmacro LoadDefaultVimrc $5 $vim_compat_stat "vim_compat"   "all"
+    !insertmacro LoadDefaultVimrc $5 $vim_keymap_stat "vim_keyremap" "default"
+    !insertmacro LoadDefaultVimrc $5 $vim_mouse_stat  "vim_mouse"    "default"
 
     # Parse command line
-    ${GetParameters} $3
-    !insertmacro ParseCmdSectionSelection $3 "/console="	  ${id_section_console}
-    !insertmacro ParseCmdSectionSelection $3 "/launcher="	  ${id_section_launcher}
-    !insertmacro ParseCmdSectionSelection $3 "/addpath="	  ${id_section_addpath}
-    !insertmacro ParseCmdSectionSelection $3 "/desktop="	  ${id_section_desktop}
-    !insertmacro ParseCmdSectionSelection $3 "/startmenu="  ${id_section_startmenu}
-    !insertmacro ParseCmdSectionSelection $3 "/editwith="	  ${id_section_editwith}
-    !insertmacro ParseCmdSectionSelection $3 "/vimrc="	  ${id_section_vimrc}
-    !insertmacro ParseCmdSectionSelection $3 "/pluginhome=" ${id_section_pluginhome}
-    !insertmacro ParseCmdSectionSelection $3 "/pluginvim="  ${id_section_pluginvim}
-    !insertmacro ParseCmdSectionSelection $3 "/nls="	  ${id_section_nls}
-    ${GetOptions} $3 "/compat=" $vim_compat_stat
-    ${GetOptions} $3 "/keymap=" $vim_keymap_stat
-    ${GetOptions} $3 "/mouse="  $vim_mouse_stat
+    ${GetParameters} $4
+    !insertmacro ParseCmdSectionSelection $4 "/console="    ${id_section_console}
+    !insertmacro ParseCmdSectionSelection $4 "/launcher="   ${id_section_launcher}
+    !insertmacro ParseCmdSectionSelection $4 "/addpath="    ${id_section_addpath}
+    !insertmacro ParseCmdSectionSelection $4 "/desktop="    ${id_section_desktop}
+    !insertmacro ParseCmdSectionSelection $4 "/startmenu="  ${id_section_startmenu}
+    !insertmacro ParseCmdSectionSelection $4 "/editwith="   ${id_section_editwith}
+    !insertmacro ParseCmdSectionSelection $4 "/vimrc="	    ${id_section_vimrc}
+    !insertmacro ParseCmdSectionSelection $4 "/pluginhome=" ${id_section_pluginhome}
+    !insertmacro ParseCmdSectionSelection $4 "/pluginvim="  ${id_section_pluginvim}
+    !insertmacro ParseCmdSectionSelection $4 "/nls="	    ${id_section_nls}
+    ${GetOptions} $4 "/compat=" $vim_compat_stat
+    ${GetOptions} $4 "/keymap=" $vim_keymap_stat
+    ${GetOptions} $4 "/mouse="  $vim_mouse_stat
     ClearErrors
 
     StrCpy $settings_loaded 1
