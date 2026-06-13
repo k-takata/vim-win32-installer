@@ -1,5 +1,108 @@
-This builds a one-click install for Vim for MS Windows using the Nullsoft
+This builds a one-click installer for Vim for MS Windows using the Nullsoft
 Installation System (NSIS), available at http://nsis.sourceforge.net/
+
+The installer is automatically built by the vim-win32-installer CI.
+However, if you want to build it locally (e.g. for debugging), follow the
+steps below.
+
+Assuming you have already cloned the vim-win32-installer repository into your
+local directory, say $WORKDIR.
+Run the following commands in GitBash unless otherwise stated.
+
+1. Clone the Vim repository into $WORKDIR using the git command:
+
+	cd $WORKDIR
+	git clone https://github.com/vim/vim.git
+
+2. Clone the NsisMultiUser plugin (https://github.com/Drizin/NsisMultiUser)
+   into $WORKDIR.
+   We are using the forked version instead of the original one.
+
+	git clone https://github.com/k-takata/NsisMultiUser.git
+
+3. Download and unpack the EnVar plugin
+   (https://nsis.sourceforge.io/EnVar_plug-in)
+
+	curl -O https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip
+	unzip EnVar_plugin.zip -d EnVar_plugin
+
+4. Download a zip package from the release page of the vim-win32-installer
+   repository.
+
+   For example, download the 9.2.0623 package for x64 and unpack it to
+   $WORKDIR/package/vim-package-x64:
+
+	cd $WORKDIR/package
+	curl -LO https://github.com/vim/vim-win32-installer/releases/download/v9.2.0623/gvim_9.2.0623_x64.zip
+	unzip gvim_9.2.0623_x64.zip -d vim-package-x64
+
+5. Create the license files for the installer package.
+
+	cd $WORKDIR
+	./scripts/create_nsis_lic_files.sh ./vim
+
+6. Build the Vim launcher
+   Open a Visual Studio Command Prompt for the target you want to build, then:
+
+	cd %WORKDIR%\vim-launcher
+	nmake -f Make_mvc.mak
+
+7. Build the installer
+   Now the directory structure should be like this:
+
+	<vim-win32-installer directory> ($WORKDIR)
+	    + EnVar_plugin/
+	    + NsisMultiUser/
+	    + nsis/
+	    |	README.txt (This file)
+	    |	gvim.nsi
+	    |
+	    + package/
+	    |	vim-package-x64/
+	    |	    vim/
+	    |		vim92/
+	    + vim/
+	    |	lang/
+	    |	    LICENSE.*.nsis.txt
+	    |
+	    + vim-launcher/
+		gvim.exe
+		vim.exe
+
+   Run the following command in a Command Prompt:
+
+	set PKG=..\package\vim-package-x64\vim\vim92
+	"%ProgramFiles(x86)%\NSIS\makensis" ^
+		/INPUTCHARSET UTF8 ^
+		/DVIMBIN=%PKG% ^
+		/DVIMRT=%PKG% ^
+		/DINCLUDE_LIBGCC=0 ^
+		/DWIN64=1 ^
+		/DARM64=0 ^
+		/DDEBUG ^
+		gvim.nsi
+
+   If you build an x86 or arm64 package, set PKG, /DWIN64, and /DARM64
+   correctly.
+
+   If /DDEBUG is specified, the installer will be built in debug mode.
+   The DebugPrint macro can be used for debug print. E.g.:
+
+	!insertmacro DebugPrint "debug message"
+
+   The debug message can be seen in DebugView (or DebugView++).
+   Also, it turns off LZMA compression to build faster.
+
+
+If you want to build an installer without using a zip package, see the
+following scripts in this repository:
+
+	.github/workflow/build-vim.yml
+	scripts/prepare_package_dir.bat
+
+
+
+----- OLD VERSION -----
 
 To build the installable .exe file:
 
