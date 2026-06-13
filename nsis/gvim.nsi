@@ -9,13 +9,15 @@ Unicode true  ; !include defaults to UTF-8 after Unicode True since 3.0 Alpha 2
 # WARNING: if you make changes to this script, look out for $0 to be valid,
 # because uninstall deletes most files in $0.
 
-!ifdef PLUG_ENVAR
-  !addplugindir /x86-unicode "${PLUG_ENVAR}\Plugins\x86-unicode"
+!ifndef PLUG_ENVAR
+  !define PLUG_ENVAR  ..\EnVar_plugin
 !endif
-!ifdef PLUG_NSISMULTIUSER
-  !addplugindir /x86-unicode "${PLUG_NSISMULTIUSER}\Plugins\x86-unicode"
-  !addincludedir "${PLUG_NSISMULTIUSER}\Include"
+!ifndef PLUG_NSISMULTIUSER
+  !define PLUG_NSISMULTIUSER  ..\NsisMultiUser
 !endif
+!addplugindir /x86-unicode "${PLUG_ENVAR}\Plugins\x86-unicode"
+!addplugindir /x86-unicode "${PLUG_NSISMULTIUSER}\Plugins\x86-unicode"
+!addincludedir "${PLUG_NSISMULTIUSER}\Include"
 
 # Top directory of the Vim repository
 !ifndef SRC
@@ -474,7 +476,8 @@ SectionEnd
 Section "$(str_section_exe)" id_section_exe
   SectionIn 1 2 3 RO
 
-  # we need also this here if the user changes the instdir
+  # User variables:
+  # $0 - holds the directory the runtime files are installed to
   StrCpy $0 "$INSTDIR\${VIMRUNTIME_DIR_NAME}"
 
   # Binary files
@@ -1057,10 +1060,6 @@ Function .onInit
   ${EndIf}
 
   StrCpy $settings_loaded 0
-
-  # User variables:
-  # $0 - holds the directory the runtime files are installed to
-  StrCpy $0 "$INSTDIR\${VIMRUNTIME_DIR_NAME}"
 FunctionEnd
 
 Function .onInstSuccess
