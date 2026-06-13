@@ -162,6 +162,7 @@ ManifestSupportedOS \
 !endif
 !define MULTIUSER_INSTALLMODE_DISPLAYNAME "${PRODUCT_FULL}"
 !define MULTIUSER_INSTALLMODE_UNINSTALL_REGISTRY_KEY "${UNINST_REG_KEY_NAME}"
+!define MULTIUSER_INSTALLMODE_NO_HELP_DIALOG 1	# Use our own cmdline help
 
 Name "${PRODUCT_FULL}"
 OutFile gvim${VER_MAJOR}${VER_MINOR}.exe
@@ -602,7 +603,7 @@ SectionGroup $(str_group_cmdline) id_group_cmdline
   Section "$(str_section_launcher)" id_section_launcher
     SectionIn 3
 
-    ExpandEnvStrings $5 "%SystemRoot%"  ; Normally "C:\WINDOWS"
+    ReadEnvStr $5 "SystemRoot"  ; Normally "C:\WINDOWS"
     SetOutPath $5
     File ${VIMLAUNCHER}\gvim.exe
 
@@ -1015,6 +1016,39 @@ SectionEnd
 
 ##########################################################
 Function .onInit
+  # Process /? parameter
+  ${GetParameters} $R0
+  ${GetOptions} $R0 "/?" $R1
+  ${IfNot} ${Errors}
+    ReadEnvStr $3 "SystemRoot"  ; Normally "C:\WINDOWS"
+    MessageBox MB_ICONINFORMATION \
+      "Usage:$\r$\n\
+      $\r$\n\
+      /allusers$\t- (un)install for all users (*1)$\r$\n\
+      /currentuser - (un)install for current user only (*2)$\r$\n\
+      /uninstall$\t- run uninstaller, requires *1 or *2$\r$\n\
+      /S$\t- silent mode, requires *1 or *2$\r$\n\
+      /D=path$\t- set install directory, must be last parameter, w/o quotes$\r$\n\
+      /?$\t- display this message$\r$\n\
+      $\r$\n\
+      Component selection:$\r$\n\
+      /console={1,0}$\tinstall vim.exe$\r$\n\
+      /launcher={1,0}$\tinstall Vim launcher to $3$\r$\n\
+      /addpath={1,0}$\tadd the Vim directory to PATH$\r$\n\
+      /desktop={1,0}$\tcreate desktop icons$\r$\n\
+      /startmenu={1,0}$\tcreate startmenu icons$\r$\n\
+      /editwith={1,0}$\tinstall editwith menu$\r$\n\
+      /vimrc={1,0}$\tcreate _vimrc$\r$\n\
+      /pluginhome={1,0}$\tcreate plugin dirs in home dir$\r$\n\
+      /pluginvim={1,0}$\tcreate plugin dirs in Vim dir$\r$\n\
+      /nls={1,0}$\t$\tinstall multilingual support$\r$\n\
+      /compat={vi,vim,defaults,all}$\tVi compatibility$\r$\n\
+      /keymap={default,windows}$\tkey mappings$\r$\n\
+      /mouse={default,windows,xterm}  mouse behavior"
+    SetErrorLevel 0
+    Quit
+  ${endif}
+
   !insertmacro MULTIUSER_INIT
 
   ${IfNot} ${UAC_IsInnerInstance}
@@ -1417,7 +1451,7 @@ Section "un.$(str_unsection_exe)" id_unsection_exe
   ${EndIf}
 
   # Vim launcher
-  ExpandEnvStrings $3 "%SystemRoot%"  ; Normally "C:\WINDOWS"
+  ReadEnvStr $3 "SystemRoot"  ; Normally "C:\WINDOWS"
   Delete $3\gvim.exe
   Delete $3\gvimdiff.exe
   Delete $3\gview.exe
