@@ -858,34 +858,43 @@ ${StrTok}
 
 !define PLUG_DIR_LIST "colors compiler doc ftdetect ftplugin indent keymap plugin syntax"
 
+# Create plugin directories
+# param: $R0 = target directory
+Function CreatePluginDirs
+  Push $3
+  Push $5
+
+  CreateDirectory $R0\vimfiles
+
+  StrCpy $3 0	  ; index
+  ${Do}
+    ${StrTok} $5 "${PLUG_DIR_LIST}" " " $3 "1"
+    ${If} $5 == ""
+      ${ExitDo}
+    ${EndIf}
+    CreateDirectory $R0\vimfiles\$5
+    IntOp $3 $3 + 1
+  ${Loop}
+
+  Pop $5
+  Pop $3
+FunctionEnd
+
 SectionGroup $(str_group_plugin) id_group_plugin
   Section "$(str_section_plugin_home)" id_section_pluginhome
     SectionIn 1 3
 
     ReadEnvStr $3 "COMSPEC"
     Call GetHomeDir
-    Pop $4
-    !insertmacro UAC_AsUser_ExecShell "" "$3" \
-	'/c "mkdir vimfiles & cd vimfiles & mkdir ${PLUG_DIR_LIST}"' \
-	"$4" SW_HIDE
-    # TODO: should we wait for the execution?
+    Pop $R0
+    !insertmacro UAC_AsUser_Call Function CreatePluginDirs ${UAC_SYNCREGISTERS}
   SectionEnd
 
   Section "$(str_section_plugin_vim)" id_section_pluginvim
     SectionIn 3
 
-    CreateDirectory $INSTDIR\vimfiles
-
-    StrCpy $3 0	  ; index
-    StrCpy $4 "${PLUG_DIR_LIST}"
-    ${Do}
-      ${StrTok} $5 $4 " " $3 "1"
-      ${If} $5 == ""
-	${ExitDo}
-      ${EndIf}
-      CreateDirectory $INSTDIR\vimfiles\$5
-      IntOp $3 $3 + 1
-    ${Loop}
+    StrCpy $R0 $INSTDIR
+    Call CreatePluginDirs
   SectionEnd
 SectionGroupEnd
 
